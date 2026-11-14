@@ -104,7 +104,7 @@ pipeline {
 
     environment {
         REPO_URL             = 'https://github.com/rachid-serraf/BuyMesh.git'
-        COMPOSE_PROJECT_NAME = 'buy01'
+        COMPOSE_PROJECT_NAME = 'buymesh'
         IMAGE_TAG            = "${BUILD_NUMBER}"
         HEALTH_RETRIES       = '30'
         HEALTH_INTERVAL      = '10'

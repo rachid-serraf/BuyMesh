@@ -142,7 +142,7 @@ make docker-up
 ```
 
 In that mode the container hostnames from `.env.example` are correct, because the
-services talk to each other inside the `buy01-ecommerce-network` network.
+services talk to each other inside the `buymesh-ecommerce-network` network.
 
 ---
 

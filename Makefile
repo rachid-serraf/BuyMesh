@@ -47,9 +47,9 @@ logs:
 	@if [ -z "$(s)" ]; then \
 		echo "Usage: make logs s=<service-name>"; \
 		echo "Available logs:"; \
-		ls -1 /tmp/buy01-logs 2>/dev/null | sed 's/\.log//' || echo "  No active logs found (is 'make dev' running?)"; \
+		ls -1 /tmp/buymesh-logs 2>/dev/null | sed 's/\.log//' || echo "  No active logs found (is 'make dev' running?)"; \
 	else \
-		tail -f /tmp/buy01-logs/$(s).log; \
+		tail -f /tmp/buymesh-logs/$(s).log; \
 	fi
 
 # ==============================

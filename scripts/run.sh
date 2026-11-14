@@ -33,8 +33,8 @@ done
 ok "Infrastructure is ready! Starting services..."
 
 # ---------- Logs ----------
-LOG_DIR=$(mktemp -d -t buy01-logs-XXXXXX)
-ln -sfn "$LOG_DIR" /tmp/buy01-logs
+LOG_DIR=$(mktemp -d -t buymesh-logs-XXXXXX)
+ln -sfn "$LOG_DIR" /tmp/buymesh-logs
 
 echo "${DIM}Temporary logs folder: $LOG_DIR${RESET}"
 echo "${DIM}---------------------------------------------------${RESET}"
@@ -197,7 +197,7 @@ cleanup() {
     stop_service "$s"
   done
   info "Removing temporary logs ($LOG_DIR)..."
-  rm -rf "$LOG_DIR" /tmp/buy01-logs
+  rm -rf "$LOG_DIR" /tmp/buymesh-logs
   ok "All stopped and cleaned up!"
   exit 0
 }
@@ -215,7 +215,7 @@ echo "${DIM}---------------------------------------------------${RESET}"
 
 # ---------- Command loop ----------
 # \001 and \002 mark the color codes as non-printing so line editing works correctly
-PROMPT=$'\001'"${BOLD}${GREEN}"$'\002'"buy01>"$'\001'"${RESET}"$'\002'" "
+PROMPT=$'\001'"${BOLD}${GREEN}"$'\002'"buymesh>"$'\001'"${RESET}"$'\002'" "
 
 while true; do
   read -e -r -p "$PROMPT" cmd arg arg2 || break   # EOF (Ctrl+D) -> exit
