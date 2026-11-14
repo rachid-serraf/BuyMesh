@@ -1,19 +1,23 @@
 services:
-  # servers
+  # discovery
   discovery-server:
     build: ./backend/discovery-server/
     container_name: discovery-server
+    image: ${DISCOVERY_SERVER_IMAGE:-discovery-server-image:latest}
     restart: always
     ports:
-      - "${DISCOVERY_PORT}:8761"
+      - "${DISCOVERY_PORT:-8761}:8761"
+    environment:
+      - TZ=${TZ}
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
     networks:
       - ecommerce-network
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:8761/actuator/health"]
+      test: [ "CMD", "wget", "-qO-", "http://localhost:8761/actuator/health" ]
       interval: 10s
       timeout: 5s
-      retries: 5
-      start_period: 60s
+      retries: 10
+      start_period: 40s
 
   # kafka broker
   kafka:
