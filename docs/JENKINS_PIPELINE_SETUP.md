@@ -1,6 +1,6 @@
 # Jenkins Pipeline Setup
 
-This project uses a Jenkins declarative pipeline defined in [Jenkinsfile](/home/nervan/Desktop/Buy-01/Jenkinsfile).
+This project uses a Jenkins declarative pipeline defined in [Jenkinsfile](/home/nervan/Desktop/BuyMesh/Jenkinsfile).
 
 The pipeline is designed for `product-service` with two behaviors:
 
@@ -48,7 +48,7 @@ This means:
 - It does not redeploy other services
 - It does not update code inside the running container directly
 
-The image name used by Compose is controlled in [docker-compose.yml](/home/nervan/Desktop/Buy-01/docker-compose.yml):
+The image name used by Compose is controlled in [docker-compose.yml](/home/nervan/Desktop/BuyMesh/docker-compose.yml):
 
 ```yaml
 image: ${PRODUCT_SERVICE_IMAGE:-product-service-image:latest}
@@ -198,7 +198,7 @@ This is controlled with Jenkins `when` conditions.
 
 The pipeline publishes Maven Surefire reports from:
 
-[`backend/product-service/target/surefire-reports/*.xml`](/home/nervan/Desktop/Buy-01/backend/product-service/target/surefire-reports)
+[`backend/product-service/target/surefire-reports/*.xml`](/home/nervan/Desktop/BuyMesh/backend/product-service/target/surefire-reports)
 
 This lets Jenkins show test failures in the UI.
 
@@ -264,6 +264,6 @@ Fix:
 
 ## Related Files
 
-- [Jenkinsfile](/home/nervan/Desktop/Buy-01/Jenkinsfile)
-- [docker-compose.yml](/home/nervan/Desktop/Buy-01/docker-compose.yml)
-- [backend/product-service/Dockerfile](/home/nervan/Desktop/Buy-01/backend/product-service/Dockerfile)
+- [Jenkinsfile](/home/nervan/Desktop/BuyMesh/Jenkinsfile)
+- [docker-compose.yml](/home/nervan/Desktop/BuyMesh/docker-compose.yml)
+- [backend/product-service/Dockerfile](/home/nervan/Desktop/BuyMesh/backend/product-service/Dockerfile)

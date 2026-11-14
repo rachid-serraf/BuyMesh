@@ -56,7 +56,7 @@ services:
 networks:
   ecommerce-network:
     driver: bridge
-    name: buy01-ecommerce-network
+    name: buymesh-ecommerce-network
 
 
 volumes:

@@ -114,11 +114,11 @@ create and check login tokens.
 ### Step 2 — Give the Docker project a name
 
 ```bash
-echo 'COMPOSE_PROJECT_NAME=buy01' >> .env
+echo 'COMPOSE_PROJECT_NAME=buymesh' >> .env
 ```
 
-**What it does:** names the Docker project `buy01`. Without it Docker uses the
-folder name (`buy-01`), which clashes with any other copy of this project
+**What it does:** names the Docker project `buymesh`. Without it Docker uses the
+folder name (`BuyMesh`), which clashes with any other copy of this project
 started from a folder with the same name (a Jenkins copy, for example). See
 [problem 8.4](#84-another-copy-of-the-project-is-already-running).
 
@@ -142,10 +142,10 @@ Docker** (you do not need Java or Maven for this) and creates 6 images.
 **You should see:** the command ends without `ERROR`. Then:
 
 ```bash
-docker images | grep -E 'buy01-|service-image|frontend-image'
+docker images | grep -E 'buymesh-|service-image|frontend-image'
 ```
 
-shows `buy01-api-gateway`, `buy01-discovery-server`, `user-service-image`,
+shows `buymesh-api-gateway`, `buymesh-discovery-server`, `user-service-image`,
 `product-service-image`, `media-service-image`, `frontend-image`.
 
 > ⏱ The **first** build downloads all Maven and npm dependencies. It can take
@@ -474,7 +474,7 @@ docker stop <names…>                    # free the ports
 docker start <names…>                   # later, to bring it back
 ```
 
-[Step 2](#step-2--give-the-docker-project-a-name) (`COMPOSE_PROJECT_NAME=buy01`)
+[Step 2](#step-2--give-the-docker-project-a-name) (`COMPOSE_PROJECT_NAME=buymesh`)
 keeps your copy separate from it, so `docker compose down` never touches the
 other copy.
 
@@ -577,7 +577,7 @@ From the project root:
 
 ```bash
 make env
-echo 'COMPOSE_PROJECT_NAME=buy01' >> .env
+echo 'COMPOSE_PROJECT_NAME=buymesh' >> .env
 docker compose up -d --build
 cd frontend && npm install && npm start
 ```
