@@ -11,7 +11,7 @@ def servicesList() {
         [id: 'user-service',     dir: 'backend/user-service',     type: 'maven', sonarName: 'User Service'],
         [id: 'product-service',  dir: 'backend/product-service',  type: 'maven', sonarName: 'Product Service'],
         [id: 'media-service',    dir: 'backend/media-service',    type: 'maven', sonarName: 'Media Service'],
-        [id: 'order-service',    dir: 'backend/order-service',    type: 'maven', sonarName: 'Order Service'],
+        [id: 'order-service',    dir: 'backend/order-service',    type: 'maven', builder: 'jib', sonarName: 'Order Service'],
         [id: 'frontend',         dir: 'frontend',                 type: 'node',  sonarName: 'Frontend'],
     ]
 }
@@ -209,12 +209,23 @@ pipeline {
                 script {
                     runParallel(changedServices()) { svc ->
                         def repo = imageRepo(svc)
-                        sh """
-                            echo "Building ${svc.id} image..."
-                            DF=\$(ls ${svc.dir}/[Dd]ockerfile 2>/dev/null | head -n1)
-                            [ -n "\$DF" ] || { echo "No Dockerfile found for ${svc.id}"; exit 1; }
-                            docker build -f "\$DF" -t ${repo}:${env.IMAGE_TAG} -t ${repo}:latest ${svc.dir}
-                        """
+                        if (svc.builder == 'jib') {
+                            dir(svc.dir) {
+                                sh """
+                                    echo "Building ${svc.id} image with Jib..."
+                                    ./mvnw -B compile jib:dockerBuild \\
+                                      -Dimage=${repo}:${env.IMAGE_TAG} \\
+                                      -Djib.to.tags=latest
+                                """
+                            }
+                        } else {
+                            sh """
+                                echo "Building ${svc.id} image..."
+                                DF=\$(ls ${svc.dir}/[Dd]ockerfile 2>/dev/null | head -n1)
+                                [ -n "\$DF" ] || { echo "No Dockerfile found for ${svc.id}"; exit 1; }
+                                docker build -f "\$DF" -t ${repo}:${env.IMAGE_TAG} -t ${repo}:latest ${svc.dir}
+                            """
+                        }
                     }
                 }
             }
