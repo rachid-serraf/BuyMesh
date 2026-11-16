@@ -74,9 +74,12 @@ export class SellerDashboard implements OnInit {
 
   readonly bestSellingData = computed<ChartData<'bar'>>(() => {
     const rows = this.stats()?.bestSellingProducts ?? [];
+    rows.map(v => v.name.substring(0, 3))
 
     return {
-      labels: rows.map((row) => row.name),
+      labels: rows.map((row) =>
+        row.name.length > 7 ? `${row.name.substring(0, 7)}...` : row.name
+      ),
       datasets: [
         {
           label: 'Units sold',

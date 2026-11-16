@@ -74,7 +74,9 @@ export class ProfileDashboard implements OnInit {
     const rows = this.stats()?.mostBoughtProducts ?? [];
 
     return {
-      labels: rows.map((row) => row.name),
+      labels: rows.map((row) =>
+        row.name.length > 7 ? `${row.name.substring(0, 7)}...` : row.name
+      ),
       datasets: [
         {
           label: 'Units bought',

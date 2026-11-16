@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpEvent } from '@angular/common/http';
 import { User } from '../models/user.model';
 
 @Injectable({
@@ -13,6 +13,12 @@ export class UserService {
 
   updateUser(formData: FormData): Observable<User> {
     return this.http.put<User>(`${this.parentPath}/me`, formData);
+  }
+  updateUserWithProgress(formData: FormData): Observable<HttpEvent<User>> {
+    return this.http.put<User>(`${this.parentPath}/me`, formData, {
+      reportProgress: true,
+      observe: 'events',
+    });
   }
 
   deleteUser(): Observable<void> {
