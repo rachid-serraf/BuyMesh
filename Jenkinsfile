@@ -215,7 +215,8 @@ pipeline {
                                     echo "Building ${svc.id} image with Jib..."
                                     ./mvnw -B compile jib:dockerBuild \\
                                       -Dimage=${repo}:${env.IMAGE_TAG} \\
-                                      -Djib.to.tags=latest
+                                      -Djib.to.tags=latest \\
+                                      -Djib.from.platforms=linux/arm64
                                 """
                             }
                         } else {
