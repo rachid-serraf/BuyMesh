@@ -45,11 +45,21 @@
             (change)="onAvatarSelected($event)"
             class="avatar-input"
           />
+          @if (uploadProgress() !== null && selectedAvatar()) {
+            <div class="avatar-upload-overlay">
+              <span class="spinner"></span>
+              <span class="avatar-upload-percent">{{ uploadProgress() }}%</span>
+            </div>
+          }
         </div>
         @if (avatarError()) {
           <mat-error class="avatar-error">{{ avatarError() }}</mat-error>
         }
-        <p class="avatar-hint">Click to upload a new profile photo (max 2MB)</p>
+        @if (uploadProgress() !== null && selectedAvatar()) {
+          <p class="avatar-hint upload-hint">Uploading photo… {{ uploadProgress() }}%</p>
+        } @else {
+          <p class="avatar-hint">Click to upload a new profile photo (max 2MB)</p>
+        }
       </div>
 
       <!-- Name field -->

@@ -1,5 +1,6 @@
 import { Component, inject, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HttpEventType } from '@angular/common/http';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -65,6 +66,7 @@ export class ProfileComponent {
 
   isSaving = signal(false);
   isDeleting = signal(false);
+  uploadProgress = signal<number | null>(null);
 
   // Avatar state
   avatarPreview = signal<string | null>(null);
@@ -140,6 +142,7 @@ export class ProfileComponent {
   saveProfile(): void {
     if (!this.hasChanges) return;
     this.isSaving.set(true);
+    this.uploadProgress.set(this.selectedAvatar() ? 0 : null);
 
     const updateUser = () => {
       const formData = new FormData();
@@ -156,8 +159,19 @@ export class ProfileComponent {
         formData.append('avatar', avatar);
       }
 
-      this.userService.updateUser(formData).subscribe({
-        next: (updatedUser) => {
+      this.userService.updateUserWithProgress(formData).subscribe({
+        next: (event) => {
+          if (event.type === HttpEventType.UploadProgress) {
+            if (event.total) {
+              this.uploadProgress.set(Math.round((event.loaded / event.total) * 100));
+            }
+            return;
+          }
+
+          if (event.type !== HttpEventType.Response) return;
+
+          const updatedUser = event.body;
+          this.uploadProgress.set(null);
           if (updatedUser) {
             this.authService.updateCurrentUser(updatedUser);
             this.profileForm.markAsPristine();
@@ -171,6 +185,7 @@ export class ProfileComponent {
         },
         error: (e) => {
           console.error('Profile update failed', e);
+          this.uploadProgress.set(null);
           this.snackBar.open('Failed to update profile. Please try again.', 'Dismiss', {
             duration: 3000,
           });

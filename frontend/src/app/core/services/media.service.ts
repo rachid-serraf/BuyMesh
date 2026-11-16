@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpEvent } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { MediaResponse } from '../models/api-response.model';
 
@@ -13,6 +13,12 @@ export class MediaService {
 
   uploadImages(formData: FormData): Observable<MediaResponse[]> {
     return this.http.post<MediaResponse[]>(this.parentPath, formData);
+  }
+  uploadImagesWithProgress(formData: FormData): Observable<HttpEvent<MediaResponse[]>> {
+    return this.http.post<MediaResponse[]>(this.parentPath, formData, {
+      reportProgress: true,
+      observe: 'events',
+    });
   }
   deleteImage(id: string): Observable<any> {
     return this.http.delete(`${this.parentPath}/${id}`);

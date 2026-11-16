@@ -1,5 +1,6 @@
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { HttpEventType } from '@angular/common/http';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import {
@@ -15,6 +16,11 @@ import { Category, formatCategory } from '../../../shared/utils/category.utils';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ProductListDto } from '../../../core/models/product.model';
 import { ProductCard } from '../../../shared/components/product-card/product-card';
+
+interface ThumbUpload {
+  id: number;
+  progress: number;
+}
 
 @Component({
   selector: 'app-product-form',
@@ -52,6 +58,14 @@ export class ProductForm {
 
   mainImagePreview = signal<string | null>(null);
   thumbnailPreviews = signal<string[]>([]);
+
+  mainUploadProgress = signal<number | null>(null);
+  thumbUploads = signal<ThumbUpload[]>([]);
+  isUploading = computed(
+    () => this.mainUploadProgress() !== null || this.thumbUploads().length > 0
+  );
+
+  private uploadSeq = 0;
 
   readonly initialMain = './empty.png';
 
@@ -150,6 +164,8 @@ export class ProductForm {
     this.form.reset({ name: '', description: '', price: 0, quantity: 0, category: '' });
     this.mainImagePreview.set(null);
     this.thumbnailPreviews.set([]);
+    this.mainUploadProgress.set(null);
+    this.thumbUploads.set([]);
     this.isEditMode.set(false);
     this.errorMessage.set(null);
     this.okMessage.set(null);
@@ -165,10 +181,14 @@ export class ProductForm {
       this.uploadImage(file, true);
       return;
     }
+    this.mainUploadProgress.set(0);
     this.mediaService.deleteImage(mainImageId).subscribe({
       next: () => this.uploadImage(file, true),
-      error: () => this.errorMessage.set('Delete Image failed'),
-    })
+      error: () => {
+        this.mainUploadProgress.set(null);
+        this.errorMessage.set('Delete Image failed');
+      },
+    });
   }
 
   onMainImageDrop(event: DragEvent): void {
@@ -191,22 +211,51 @@ export class ProductForm {
       return;
     }
 
+    const uploadId = ++this.uploadSeq;
+    if (isMain) {
+      this.mainUploadProgress.set(0);
+    } else {
+      this.thumbUploads.update((list) => [...list, { id: uploadId, progress: 0 }]);
+    }
+
     const formData = new FormData();
     formData.append('files', file);
 
-    this.mediaService.uploadImages(formData).subscribe({
-      next: (res) => {
-        const id = res[0]?.imagesId;
-        if (id) {
+    this.mediaService.uploadImagesWithProgress(formData).subscribe({
+      next: (event) => {
+        if (event.type === HttpEventType.UploadProgress) {
+          const percent = event.total ? Math.round((event.loaded / event.total) * 100) : 0;
+          this.setUploadProgress(uploadId, isMain, percent);
+        } else if (event.type === HttpEventType.Response) {
+          const id = event.body?.[0]?.imagesId;
           if (isMain) {
-            this.mainImagePreview.set(id);
+            this.mainUploadProgress.set(null);
+            if (id) this.mainImagePreview.set(id);
           } else {
-            this.thumbnailPreviews.update(prev => [...prev, id]);
+            this.thumbUploads.update((list) => list.filter((u) => u.id !== uploadId));
+            if (id) this.thumbnailPreviews.update((prev) => [...prev, id]);
           }
         }
       },
-      error: () => this.errorMessage.set('Image upload failed')
+      error: () => {
+        if (isMain) {
+          this.mainUploadProgress.set(null);
+        } else {
+          this.thumbUploads.update((list) => list.filter((u) => u.id !== uploadId));
+        }
+        this.errorMessage.set('Image upload failed');
+      },
     });
+  }
+
+  private setUploadProgress(uploadId: number, isMain: boolean, progress: number): void {
+    if (isMain) {
+      this.mainUploadProgress.set(progress);
+    } else {
+      this.thumbUploads.update((list) =>
+        list.map((u) => (u.id === uploadId ? { ...u, progress } : u))
+      );
+    }
   }
 
   removeThumbnail(index: number): void {
@@ -251,6 +300,10 @@ export class ProductForm {
 
   // ── Submit ───────────────────────────────────────────────
   onSubmit(): void {
+    if (this.isUploading()) {
+      return;
+    }
+
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;

@@ -129,6 +129,17 @@
                     (change)="onMainImageSelected($event)"
                   />
                 </label>
+                @if (mainUploadProgress() !== null) {
+                  <div class="upload-overlay">
+                    <span class="spinner"></span>
+                    <span>{{ mainUploadProgress() }}%</span>
+                  </div>
+                }
+              </div>
+            } @else if (mainUploadProgress() !== null) {
+              <div class="preview-tile upload-tile">
+                <span class="spinner"></span>
+                <span>{{ mainUploadProgress() }}%</span>
               </div>
             } @else {
               <label class="preview-tile add-tile">
@@ -141,6 +152,13 @@
                   (change)="onMainImageSelected($event)"
                 />
               </label>
+            }
+
+            @for (upload of thumbUploads(); track upload.id) {
+              <div class="preview-tile upload-tile">
+                <span class="spinner"></span>
+                <span>{{ upload.progress }}%</span>
+              </div>
             }
 
             @for (url of displayedThumbs; track $index) {
@@ -159,7 +177,7 @@
 
             <!-- Empty slots so the grid always shows 4 squares -->
             @for (slot of [1, 2, 3]; track slot) {
-              @if (slot > displayedThumbs.length) {
+              @if (slot > displayedThumbs.length + thumbUploads().length) {
                 <label class="preview-tile empty-slot" for="thumbnails-upload" aria-label="Add image"></label>
               }
             }
@@ -268,11 +286,15 @@
     [class.has-tip]="form.invalid && missingText()"
     [attr.data-tip]="form.invalid ? missingText() : null"
   >
-    <button type="submit" form="product-form" class="btn btn-primary" [disabled]="form.invalid || isLoading()">
-      @if (isLoading()) {
+    <button type="submit" form="product-form" class="btn btn-primary" [disabled]="form.invalid || isLoading() || isUploading()">
+      @if (isLoading() || isUploading()) {
         <span class="spinner"></span>
       }
-      Save product
+      @if (isUploading() && !isLoading()) {
+        Uploading image…
+      } @else {
+        Save product
+      }
     </button>
   </span>
 </ng-template>
