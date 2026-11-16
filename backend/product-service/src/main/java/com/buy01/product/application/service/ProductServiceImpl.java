@@ -4,7 +4,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.buy01.product.infrastructure.web.dto.*;
@@ -15,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.buy01.product.domain.model.Product;
+import com.buy01.product.domain.model.StockItem;
 import com.buy01.product.domain.ports.inbound.ProductUseCase;
 import com.buy01.product.domain.ports.outbound.ProductRepositoryPort;
 
@@ -71,6 +71,62 @@ public class ProductServiceImpl implements ProductUseCase {
                     return productRepository.save(updatedProduct);
                 })
                 .doOnNext(savedProduct -> imageService.sendKafkaImageLinked(savedProduct, update.getImagesIds()));
+    }
+
+    @Override
+    public Mono<Void> reserveStock(List<StockItem> items) {
+        if (items == null || items.isEmpty()) {
+            return Mono.empty();
+        }
+
+        return Mono.defer(() -> {
+            List<StockItem> reserved = new ArrayList<>();
+            return reserveNext(items, 0, reserved)
+                    .onErrorResume(error -> compensate(reserved).then(Mono.error(error)));
+        });
+    }
+
+    private Mono<Void> reserveNext(List<StockItem> items, int index, List<StockItem> reserved) {
+        if (index >= items.size()) {
+            return Mono.empty();
+        }
+
+        StockItem item = items.get(index);
+        return productRepository.adjustStock(item.productId(), -item.quantity())
+                .switchIfEmpty(Mono.error(new Errors.StockConflictException(
+                        "Insufficient stock for product " + item.productId()
+                                + " (requested " + item.quantity() + ")")))
+                .then(Mono.defer(() -> {
+                    reserved.add(item);
+                    return reserveNext(items, index + 1, reserved);
+                }));
+    }
+
+    private Mono<Void> compensate(List<StockItem> reserved) {
+        if (reserved.isEmpty()) {
+            return Mono.empty();
+        }
+
+        return Flux.fromIterable(reserved)
+                .concatMap(item -> productRepository.adjustStock(item.productId(), item.quantity())
+                        .onErrorResume(error -> {
+                            log.warn("Failed to compensate stock for product {}", item.productId(), error);
+                            return Mono.empty();
+                        }))
+                .then();
+    }
+
+    @Override
+    public Mono<Void> releaseStock(List<StockItem> items) {
+        if (items == null || items.isEmpty()) {
+            return Mono.empty();
+        }
+
+        return Flux.fromIterable(items)
+                .concatMap(item -> productRepository.adjustStock(item.productId(), item.quantity())
+                        .switchIfEmpty(Mono.error(new Errors.StockConflictException(
+                                "Cannot release stock, product not found: " + item.productId()))))
+                .then();
     }
 
     @Override

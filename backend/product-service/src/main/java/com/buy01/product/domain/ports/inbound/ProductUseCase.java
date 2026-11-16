@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.List;
 
 import com.buy01.product.domain.model.Product;
+import com.buy01.product.domain.model.StockItem;
 import com.buy01.product.infrastructure.web.dto.*;
 
 import reactor.core.publisher.Flux;
@@ -11,6 +12,10 @@ import reactor.core.publisher.Mono;
 
 public interface ProductUseCase {
     Mono<Product> createProduct(Product product, List<String> imagesids);
+
+    Mono<Void> reserveStock(List<StockItem> items);
+
+    Mono<Void> releaseStock(List<StockItem> items);
 
     Mono<Product> updateProduct(Product update, String id, String userId);
 

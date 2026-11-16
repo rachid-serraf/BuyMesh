@@ -229,6 +229,7 @@ services:
       - PRODUCT_MONGO_DB_PWD=${PRODUCT_MONGO_DB_PWD}
       - KAFKA_BROKER=kafka:9092
       - JWT_PUBLIC_KEY=${JWT_PUBLIC_KEY}
+      - INTERNAL_API_KEY=${INTERNAL_API_KEY:-local-dev-internal-key}
     networks:
       - ecommerce-network
     healthcheck:
@@ -309,6 +310,7 @@ services:
       - JWT_PUBLIC_KEY=${JWT_PUBLIC_KEY}
       - JWT_EXPIRATION=${JWT_EXPIRATION}
       - MEDIA_SERVICE_URL=http://media-service:8083
+      - INTERNAL_API_KEY=${INTERNAL_API_KEY:-local-dev-internal-key}
     networks:
       - ecommerce-network
     healthcheck:

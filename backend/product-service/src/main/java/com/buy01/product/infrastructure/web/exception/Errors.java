@@ -22,6 +22,12 @@ public class Errors {
         }
     }
 
+    public static class StockConflictException extends RuntimeException {
+        public StockConflictException(String message) {
+            super(message);
+        }
+    }
+
     public static class InvalidSearchException extends RuntimeException {
         private final List<String> details;
 

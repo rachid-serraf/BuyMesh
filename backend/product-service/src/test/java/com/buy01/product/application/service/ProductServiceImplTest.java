@@ -24,6 +24,7 @@ import org.springframework.data.domain.Sort;
 
 import com.buy01.product.domain.model.Category;
 import com.buy01.product.domain.model.Product;
+import com.buy01.product.domain.model.StockItem;
 import com.buy01.product.domain.ports.outbound.ProductRepositoryPort;
 import com.buy01.product.infrastructure.web.dto.ProductList;
 import com.buy01.product.infrastructure.web.dto.ProductSearchRequest;
@@ -406,6 +407,60 @@ class ProductServiceImplTest {
                 .verify();
 
         verify(productRepository, never()).search(any(), any());
+    }
+
+    @Test
+    void reserveStockDecrementsEveryItem() {
+        when(productRepository.adjustStock("prod-1", -2))
+                .thenReturn(Mono.just(product("prod-1", "seller-1")));
+        when(productRepository.adjustStock("prod-2", -1))
+                .thenReturn(Mono.just(product("prod-2", "seller-1")));
+
+        StepVerifier.create(productService.reserveStock(
+                List.of(new StockItem("prod-1", 2), new StockItem("prod-2", 1))))
+                .verifyComplete();
+
+        verify(productRepository).adjustStock("prod-1", -2);
+        verify(productRepository).adjustStock("prod-2", -1);
+    }
+
+    @Test
+    void reserveStockCompensatesAlreadyReservedItemsWhenOneItemFails() {
+        when(productRepository.adjustStock("prod-1", -2))
+                .thenReturn(Mono.just(product("prod-1", "seller-1")));
+        when(productRepository.adjustStock("prod-2", -1))
+                .thenReturn(Mono.empty());
+        when(productRepository.adjustStock("prod-1", 2))
+                .thenReturn(Mono.just(product("prod-1", "seller-1")));
+
+        StepVerifier.create(productService.reserveStock(
+                List.of(new StockItem("prod-1", 2), new StockItem("prod-2", 1))))
+                .expectErrorSatisfies(error -> assertThat(error)
+                        .isInstanceOf(Errors.StockConflictException.class))
+                .verify();
+
+        verify(productRepository).adjustStock("prod-1", 2);
+    }
+
+    @Test
+    void releaseStockIncrementsEveryItem() {
+        when(productRepository.adjustStock("prod-1", 3))
+                .thenReturn(Mono.just(product("prod-1", "seller-1")));
+
+        StepVerifier.create(productService.releaseStock(List.of(new StockItem("prod-1", 3))))
+                .verifyComplete();
+
+        verify(productRepository).adjustStock("prod-1", 3);
+    }
+
+    @Test
+    void releaseStockFailsWhenTheProductNoLongerExists() {
+        when(productRepository.adjustStock("missing", 1)).thenReturn(Mono.empty());
+
+        StepVerifier.create(productService.releaseStock(List.of(new StockItem("missing", 1))))
+                .expectErrorSatisfies(error -> assertThat(error)
+                        .isInstanceOf(Errors.StockConflictException.class))
+                .verify();
     }
 
     private Product product(String id, String userId) {

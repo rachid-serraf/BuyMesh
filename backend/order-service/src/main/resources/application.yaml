@@ -32,6 +32,9 @@ kafka:
   topics:
     order-stock: order-stock-events
 
+internal:
+  api-key: ${INTERNAL_API_KEY:local-dev-internal-key}
+
 security:
   jwt:
     private-key: ${JWT_PRIVATE_KEY}
