@@ -19,6 +19,8 @@ import org.springframework.util.StringUtils;
 
 import com.buy01.order.cart.client.ProductClient;
 import com.buy01.order.cart.client.ProductResponse;
+import com.buy01.order.cart.client.StockAdjustRequest;
+import com.buy01.order.cart.client.StockItemRequest;
 import com.buy01.order.common.Role;
 import com.buy01.order.common.Status;
 import com.buy01.order.order.dto.BuyNowRequest;
@@ -28,13 +30,13 @@ import com.buy01.order.order.dto.OrderQuery;
 import com.buy01.order.order.dto.OrderResponse;
 import com.buy01.order.order.dto.PageResponse;
 import com.buy01.order.order.dto.UpdateOrderStatusRequest;
+import com.buy01.order.order.exception.InsufficientStockException;
 import com.buy01.order.order.exception.InvalidOrderException;
 import com.buy01.order.order.exception.InvalidOrderQueryException;
 import com.buy01.order.order.exception.InvalidOrderStateException;
 import com.buy01.order.order.exception.OrderAccessDeniedException;
 import com.buy01.order.order.exception.OrderNotFoundException;
 import com.buy01.order.order.model.entity.DeliveryAddress;
-import com.buy01.order.order.messaging.OrderStockEventPublisher;
 import com.buy01.order.order.model.entity.Order;
 import com.buy01.order.order.model.entity.OrderItem;
 import com.buy01.order.order.model.repository.OrderRepository;
@@ -42,7 +44,9 @@ import com.buy01.order.security.JwtAuthenticationFilter.UserPrincipal;
 
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OrderService {
@@ -56,7 +60,6 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final ProductClient productClient;
-    private final OrderStockEventPublisher stockEventPublisher;
 
     public OrderResponse createOrder(UserPrincipal actor, CreateOrderRequest request) {
         return createOrderForBuyer(actor.id(), request);
@@ -179,7 +182,7 @@ public class OrderService {
         order.setStatus(Status.CANCELLED);
         order.setUpdatedAt(Instant.now());
         Order saved = orderRepository.save(order);
-        stockEventPublisher.releaseStock(saved);
+        releaseStockQuietly(saved.getItems());
         return OrderResponse.from(saved);
     }
 
@@ -207,8 +210,15 @@ public class OrderService {
                 .updatedAt(now)
                 .build();
 
-        Order saved = orderRepository.save(redo);
-        stockEventPublisher.reserveStock(saved);
+        reserveStock(redo.getItems());
+
+        Order saved;
+        try {
+            saved = orderRepository.save(redo);
+        } catch (RuntimeException error) {
+            releaseStockQuietly(redo.getItems());
+            throw error;
+        }
         return OrderResponse.from(saved);
     }
 
@@ -275,9 +285,59 @@ public class OrderService {
                 .updatedAt(now)
                 .build();
 
-        Order saved = orderRepository.save(order);
-        stockEventPublisher.reserveStock(saved);
+        // Reserve stock before the order becomes visible. The reservation is
+        // atomic per product and compensated automatically if any item fails.
+        reserveStock(order.getItems());
+
+        Order saved;
+        try {
+            saved = orderRepository.save(order);
+        } catch (RuntimeException error) {
+            releaseStockQuietly(order.getItems());
+            throw error;
+        }
         return OrderResponse.from(saved);
+    }
+
+    private void reserveStock(List<OrderItem> items) {
+        StockAdjustRequest request = toStockRequest(items);
+        if (request.items().isEmpty()) {
+            return;
+        }
+
+        try {
+            productClient.reserveStock(request);
+        } catch (FeignException error) {
+            if (error.status() == 409) {
+                throw new InsufficientStockException(
+                        "Insufficient stock for one or more order items");
+            }
+            throw new InvalidOrderException(
+                    "Unable to reserve stock: product service unavailable");
+        }
+    }
+
+    private void releaseStockQuietly(List<OrderItem> items) {
+        StockAdjustRequest request = toStockRequest(items);
+        if (request.items().isEmpty()) {
+            return;
+        }
+
+        try {
+            productClient.releaseStock(request);
+        } catch (RuntimeException error) {
+            log.error("Failed to release stock for order items {}", request, error);
+        }
+    }
+
+    private StockAdjustRequest toStockRequest(List<OrderItem> items) {
+        List<StockItemRequest> stockItems = items == null ? List.of() : items.stream()
+                .filter(item -> item.getProductId() != null
+                        && !item.getProductId().isBlank()
+                        && item.getQuantity() > 0)
+                .map(item -> new StockItemRequest(item.getProductId(), item.getQuantity()))
+                .toList();
+        return new StockAdjustRequest(stockItems);
     }
 
     private ProductResponse fetchProduct(String productId) {

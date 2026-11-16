@@ -17,6 +17,7 @@ import org.springframework.web.server.MethodNotAllowedException;
 import org.springframework.web.server.ServerWebInputException;
 
 import com.buy01.product.infrastructure.web.exception.Errors.MediaServiceException;
+import com.buy01.product.infrastructure.web.exception.Errors.StockConflictException;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import lombok.extern.slf4j.Slf4j;
@@ -97,6 +98,7 @@ public class GlobalExceptionHandler {
             .add(NotFoundException.class, NOT_FOUND, "Validation Error")
             .add(UsernameNotFoundException.class, NOT_FOUND, "User Not Found")
             .add(MethodNotAllowedException.class, METHOD_NOT_ALLOWED, "Method Not Allowed")
+            .add(StockConflictException.class, CONFLICT, "Stock Conflict")
             .add(ServerWebInputException.class, BAD_REQUEST, "No request body")
             .add(WebExchangeBindException.class, BAD_REQUEST, "Validation Failed",
                     ex -> ((WebExchangeBindException) ex).getBindingResult().getFieldErrors()

@@ -18,32 +18,31 @@ import com.buy01.order.order.dto.CreateOrderRequest
 import com.buy01.order.order.dto.OrderItemRequest
 import com.buy01.order.order.dto.OrderQuery
 import com.buy01.order.order.dto.UpdateOrderStatusRequest
+import com.buy01.order.order.exception.InsufficientStockException
 import com.buy01.order.order.exception.InvalidOrderException
 import com.buy01.order.order.exception.InvalidOrderQueryException
 import com.buy01.order.order.exception.InvalidOrderStateException
 import com.buy01.order.order.exception.OrderAccessDeniedException
 import com.buy01.order.order.exception.OrderNotFoundException
-import com.buy01.order.order.messaging.OrderStockEventPublisher
 import com.buy01.order.order.model.entity.DeliveryAddress
 import com.buy01.order.order.model.entity.Order
 import com.buy01.order.order.model.entity.OrderItem
 import com.buy01.order.order.model.repository.OrderRepository
 import com.buy01.order.security.JwtAuthenticationFilter.UserPrincipal
 
+import feign.FeignException
 import spock.lang.Specification
 
 class OrderServiceSpec extends Specification {
 
     private OrderRepository orderRepository
     private ProductClient productClient
-    private OrderStockEventPublisher stockEventPublisher
     private OrderService orderService
 
     def setup() {
         orderRepository = Mock()
         productClient = Mock()
-        stockEventPublisher = Mock()
-        orderService = new OrderService(orderRepository, productClient, stockEventPublisher)
+        orderService = new OrderService(orderRepository, productClient)
     }
 
     private static UserPrincipal buyer(UUID id) {
@@ -119,7 +118,7 @@ class OrderServiceSpec extends Specification {
             saved.id = "order-1"
             saved
         }
-        1 * stockEventPublisher.reserveStock(_)
+        1 * productClient.reserveStock(_)
 
         result.id == "order-1"
         result.checkoutId == "checkout-1"
@@ -143,7 +142,7 @@ class OrderServiceSpec extends Specification {
 
         then:
         1 * orderRepository.save(_) >> { Order saved -> saved }
-        1 * stockEventPublisher.reserveStock(_)
+        1 * productClient.reserveStock(_)
         result.sellerId == "seller-1"
         result.total == new BigDecimal("9.99")
     }
@@ -214,7 +213,7 @@ class OrderServiceSpec extends Specification {
             saved.id = "order-1"
             saved
         }
-        1 * stockEventPublisher.reserveStock(_)
+        1 * productClient.reserveStock(_)
 
         result.id == "order-1"
         result.buyerId == buyerId.toString()
@@ -392,7 +391,7 @@ class OrderServiceSpec extends Specification {
         then:
         1 * orderRepository.findById("order-1") >> Optional.of(order)
         1 * orderRepository.save(order) >> order
-        0 * stockEventPublisher.reserveStock(_)
+        0 * productClient.reserveStock(_)
 
         result.status == Status.CONFIRMED
         order.updatedAt.isAfter(Instant.parse("2026-01-01T10:00:00Z"))
@@ -455,7 +454,7 @@ class OrderServiceSpec extends Specification {
         then:
         1 * orderRepository.findById("order-1") >> Optional.of(order)
         1 * orderRepository.save(order) >> order
-        1 * stockEventPublisher.releaseStock(order)
+        1 * productClient.releaseStock(_)
         result.status == Status.CANCELLED
     }
 
@@ -470,7 +469,7 @@ class OrderServiceSpec extends Specification {
         then:
         1 * orderRepository.findById("order-1") >> Optional.of(order)
         1 * orderRepository.save(order) >> order
-        1 * stockEventPublisher.releaseStock(order)
+        1 * productClient.releaseStock(_)
         result.status == Status.CANCELLED
     }
 
@@ -515,7 +514,7 @@ class OrderServiceSpec extends Specification {
             saved.id = "order-2"
             saved
         }
-        1 * stockEventPublisher.reserveStock(_)
+        1 * productClient.reserveStock(_)
 
         result.id == "order-2"
         result.buyerId == buyerId.toString()
@@ -566,7 +565,7 @@ class OrderServiceSpec extends Specification {
         1 * orderRepository.findById("order-1") >> Optional.of(order)
         1 * orderRepository.delete(order)
         0 * orderRepository.save(_)
-        0 * stockEventPublisher.releaseStock(_)
+        0 * productClient.releaseStock(_)
     }
 
     def "deleteOrder does not change stock for a delivered order"() {
@@ -580,7 +579,7 @@ class OrderServiceSpec extends Specification {
         then:
         1 * orderRepository.findById("order-1") >> Optional.of(order)
         1 * orderRepository.delete(order)
-        0 * stockEventPublisher.releaseStock(_)
+        0 * productClient.releaseStock(_)
     }
 
     def "deleteOrder rejects sellers"() {
@@ -645,5 +644,42 @@ class OrderServiceSpec extends Specification {
         then:
         thrown(InvalidOrderQueryException)
         0 * orderRepository.search(_, _, _, _, _, _, _)
+    }
+
+    def "createOrder does not save the order when stock reservation is rejected"() {
+        given:
+        def request = new CreateOrderRequest(
+                "checkout-1", "seller-1", [item("seller-1", new BigDecimal("9.99"), 2)], null)
+
+        when:
+        orderService.createOrder(buyer(UUID.randomUUID()), request)
+
+        then:
+        1 * productClient.reserveStock(_) >> {
+            def feignRequest = feign.Request.create(
+                    feign.Request.HttpMethod.POST,
+                    "http://product-service/internal/stock/reserve",
+                    [:],
+                    null,
+                    java.nio.charset.StandardCharsets.UTF_8)
+            throw new FeignException.Conflict("conflict", feignRequest, null, null)
+        }
+        0 * orderRepository.save(_)
+        thrown(InsufficientStockException)
+    }
+
+    def "createOrder releases reserved stock when saving the order fails"() {
+        given:
+        def request = new CreateOrderRequest(
+                "checkout-1", "seller-1", [item("seller-1", new BigDecimal("9.99"), 1)], null)
+
+        when:
+        orderService.createOrder(buyer(UUID.randomUUID()), request)
+
+        then:
+        1 * productClient.reserveStock(_)
+        1 * orderRepository.save(_) >> { throw new IllegalStateException("db down") }
+        1 * productClient.releaseStock(_)
+        thrown(IllegalStateException)
     }
 }

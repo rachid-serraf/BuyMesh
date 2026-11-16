@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
+import com.buy01.order.cart.controller.CartController;
 import com.buy01.order.order.controller.OrderController;
 import com.buy01.order.order.dto.ApiError;
 import com.buy01.order.order.stats.controller.OrderStatsController;
@@ -21,7 +22,8 @@ import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@RestControllerAdvice(assignableTypes = {OrderController.class, OrderStatsController.class})
+@RestControllerAdvice(assignableTypes = {OrderController.class, OrderStatsController.class,
+        CartController.class})
 public class OrderExceptionHandler {
 
     @ExceptionHandler(OrderNotFoundException.class)
@@ -52,6 +54,12 @@ public class OrderExceptionHandler {
     public ResponseEntity<ApiError> handleInvalidOrder(InvalidOrderException ex) {
         return ResponseEntity.badRequest()
                 .body(ApiError.of("INVALID_ORDER", ex.getMessage()));
+    }
+
+    @ExceptionHandler(InsufficientStockException.class)
+    public ResponseEntity<ApiError> handleInsufficientStock(InsufficientStockException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ApiError.of("INSUFFICIENT_STOCK", ex.getMessage()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
