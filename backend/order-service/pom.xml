@@ -31,6 +31,7 @@
         <java.version>21</java.version>
         <spring-cloud.version>2024.0.2</spring-cloud.version>
         <spock.version>2.4-groovy-4.0</spock.version>
+        <image>order-service-image:latest</image>
         <gmavenplus.version>4.3.1</gmavenplus.version>
     </properties>
     <dependencies>
@@ -49,13 +50,6 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
-
-        <!-- <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-devtools</artifactId>
-            <scope>runtime</scope>
-            <optional>true</optional>
-        </dependency> -->
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -242,6 +236,27 @@
                         <goals><goal>report</goal></goals>
                     </execution>
                 </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>com.google.cloud.tools</groupId>
+                <artifactId>jib-maven-plugin</artifactId>
+                <version>3.4.4</version>
+                <configuration>
+                    <from>
+                      <image>eclipse-temurin:21-jre-alpine</image>
+                    </from>
+                    <to>
+                      <image>${image}</image>
+                    </to>
+                    <container>
+                      <workingDirectory>/app</workingDirectory>
+                      <creationTime>USE_CURRENT_TIMESTAMP</creationTime>
+                      <ports>
+                        <port>8084</port>
+                      </ports>
+                    </container>
+                </configuration>
             </plugin>
         </plugins>
     </build>
