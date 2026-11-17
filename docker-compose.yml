@@ -6,7 +6,7 @@ services:
     image: ${DISCOVERY_SERVER_IMAGE:-discovery-server-image:latest}
     restart: always
     ports:
-      - "${DISCOVERY_PORT:-8761}:8761"
+      - "127.0.0.1:${DISCOVERY_PORT:-8761}:8761"
     environment:
       - TZ=${TZ}
       - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
@@ -25,7 +25,7 @@ services:
     container_name: kafka
     restart: always
     ports:
-      - "9092:9092"
+      - "127.0.0.1:9092:9092"
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
@@ -52,7 +52,7 @@ services:
     container_name: mongo-user
     restart: unless-stopped
     ports:
-      - "27017:27017"
+      - "127.0.0.1:27017:27017"
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${USER_MONGO_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${USER_MONGO_PASSWORD}
@@ -72,7 +72,7 @@ services:
     image: mongo:7
     restart: always
     ports:
-      - "${MEDIA_MONGO_LOCAL_PORT}:27017"
+      - "127.0.0.1:${MEDIA_MONGO_LOCAL_PORT}:27017"
     environment:
       MONGO_INITDB_DATABASE: ${MEDIA_MONGO_DB_NAME}
       MONGO_INITDB_ROOT_USERNAME: ${MEDIA_MONGO_DB_USER}
@@ -93,7 +93,7 @@ services:
     image: mongo:7
     restart: always
     ports:
-      - "${PRODUCT_MONGO_LOCAL_PORT}:27017"
+      - "127.0.0.1:${PRODUCT_MONGO_LOCAL_PORT}:27017"
     environment:
       MONGO_INITDB_DATABASE: ${PRODUCT_MONGO_DB_NAME}
       MONGO_INITDB_ROOT_USERNAME: ${PRODUCT_MONGO_DB_USER}
@@ -114,7 +114,7 @@ services:
     image: mongo:7
     restart: always
     ports:
-      - "${ORDER_MONGO_LOCAL_PORT}:27017"
+      - "127.0.0.1:${ORDER_MONGO_LOCAL_PORT}:27017"
     environment:
       MONGO_INITDB_DATABASE: ${ORDER_MONGO_DB_NAME}
       MONGO_INITDB_ROOT_USERNAME: ${ORDER_MONGO_DB_USER}
@@ -140,7 +140,7 @@ services:
     image: ${API_GATEWAY_IMAGE:-api-gateway-image:latest}
     restart: unless-stopped
     ports:
-      - "${GATEWAY_PORT}:8080"
+      - "127.0.0.1:${GATEWAY_PORT}:8080"
     depends_on:
       - discovery-server
       - user-service
@@ -168,7 +168,7 @@ services:
     image: ${USER_SERVICE_IMAGE:-user-service-image:latest}
     restart: unless-stopped
     ports:
-      - "${USER_SERVICE_PORT}:${USER_SERVICE_PORT}"
+      - "127.0.0.1:${USER_SERVICE_PORT}:${USER_SERVICE_PORT}"
     depends_on:
       mongo-user:
         condition: service_healthy
@@ -210,7 +210,7 @@ services:
     image: ${PRODUCT_SERVICE_IMAGE:-product-service-image:latest}
     restart: unless-stopped
     ports:
-      - "8082:8082"
+      - "127.0.0.1:8082:8082"
     depends_on:
       mongo-product:
         condition: service_healthy
@@ -248,7 +248,7 @@ services:
     image: ${MEDIA_SERVICE_IMAGE:-media-service-image:latest}
     restart: unless-stopped
     ports:
-      - "8083:8083"
+      - "127.0.0.1:8083:8083"
     depends_on:
       mongo-media:
         condition: service_healthy
@@ -288,7 +288,7 @@ services:
     image: ${ORDER_SERVICE_IMAGE:-order-service-image:latest}
     restart: unless-stopped
     ports:
-      - "${ORDER_SERVICE_PORT}:8084"
+      - "127.0.0.1:${ORDER_SERVICE_PORT}:8084"
     depends_on:
       mongo-order:
         condition: service_healthy
@@ -329,7 +329,7 @@ services:
     container_name: frontend
     restart: unless-stopped
     ports:
-      - "8085:80"
+      - "127.0.0.1:8085:80"
     depends_on:
       - api-gateway
     networks:

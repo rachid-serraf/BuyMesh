@@ -9,11 +9,10 @@ services:
     user: root
     restart: unless-stopped
     ports:
-      - "8084:8080"   
-      - "50000:50000" # Jenkins agent communication
+      - "127.0.0.1:8084:8080"   
+      - "127.0.0.1:50000:50000" # Jenkins agent communication
     volumes:
-      - jenkins-data:/var/jenkins-data
-      # Optional: Mount the docker socket to run docker commands inside Jenkins
+      - jenkins-data:/var/jenkins_home
       - /var/run/docker.sock:/var/run/docker.sock
 
   sonarqube:
@@ -28,7 +27,7 @@ services:
       SONAR_JDBC_PASSWORD: ${SONAR_DB_PASSWORD}
       SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: "true"
     ports:
-      - "9000:9000"
+      - "127.0.0.1:9000:9000"
     volumes:
       - sonarqube_data:/opt/sonarqube/data
       - sonarqube_extensions:/opt/sonarqube/extensions

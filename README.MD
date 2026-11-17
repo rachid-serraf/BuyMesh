@@ -4,21 +4,10 @@
 
 ## Overview
 
-BuyMesh is a microservices-based e-commerce marketplace built with Spring Boot. Buyers and sellers connect through product management, user authentication, ordering, and media handling services.
+BuyMesh is a microservices-based e-commerce marketplace built with Spring Boot. Buyers and sellers connect through product management, user authentication, cart & checkout, order lifecycle, and media handling services.
 
 ## Authors
 
-- Hamza Maach
-  [<img src="https://img.shields.io/badge/Github-%23000000.svg?logo=Github&logoColor=white" 
-        alt="Github logo" 
-        title="Github" 
-        height="17" 
-        style="vertical-align: middle; margin-left: 5px;" />](https://github.com/hmaach)
-  [<img src="https://img.shields.io/badge/LinkedIn-blue.svg?logo=data:image/svg+xml;base64,PCFET0NUWVBFIHN2ZyBQVUJMSUMgIi0vL1czQy8vRFREIFNWRyAxLjEvL0VOIiAiaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkIj4KDTwhLS0gVXBsb2FkZWQgdG86IFNWRyBSZXBvLCB3d3cuc3ZncmVwby5jb20sIFRyYW5zZm9ybWVkIGJ5OiBTVkcgUmVwbyBNaXhlciBUb29scyAtLT4KPHN2ZyBmaWxsPSIjZmZmZmZmIiBoZWlnaHQ9IjgwMHB4IiB3aWR0aD0iODAwcHgiIHZlcnNpb249IjEuMSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHZpZXdCb3g9IjAgMCAzMTAgMzEwIiB4bWw6c3BhY2U9InByZXNlcnZlIiBzdHJva2U9IiNmZmZmZmYiPgoNPGcgaWQ9IlNWR1JlcG9fYmdDYXJyaWVyIiBzdHJva2Utd2lkdGg9IjAiLz4KDTxnIGlkPSJTVkdSZXBvX3RyYWNlckNhcnJpZXIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgoNPGcgaWQ9IlNWR1JlcG9faWNvbkNhcnJpZXIiPiA8ZyBpZD0iWE1MSURfODAxXyI+IDxwYXRoIGlkPSJYTUxJRF84MDJfIiBkPSJNNzIuMTYsOTkuNzNIOS45MjdjLTIuNzYyLDAtNSwyLjIzOS01LDV2MTk5LjkyOGMwLDIuNzYyLDIuMjM4LDUsNSw1SDcyLjE2YzIuNzYyLDAsNS0yLjIzOCw1LTVWMTA0LjczIEM3Ny4xNiwxMDEuOTY5LDc0LjkyMiw5OS43Myw3Mi4xNiw5OS43M3oiLz4gPHBhdGggaWQ9IlhNTElEXzgwM18iIGQ9Ik00MS4wNjYsMC4zNDFDMTguNDIyLDAuMzQxLDAsMTguNzQzLDAsNDEuMzYyQzAsNjMuOTkxLDE4LjQyMiw4Mi40LDQxLjA2Niw4Mi40IGMyMi42MjYsMCw0MS4wMzMtMTguNDEsNDEuMDMzLTQxLjAzOEM4Mi4xLDE4Ljc0Myw2My42OTIsMC4zNDEsNDEuMDY2LDAuMzQxeiIvPiA8cGF0aCBpZD0iWE1MSURfODA0XyIgZD0iTTIzMC40NTQsOTQuNzYxYy0yNC45OTUsMC00My40NzIsMTAuNzQ1LTU0LjY3OSwyMi45NTRWMTA0LjczYzAtMi43NjEtMi4yMzgtNS01LTVoLTU5LjU5OSBjLTIuNzYyLDAtNSwyLjIzOS01LDV2MTk5LjkyOGMwLDIuNzYyLDIuMjM4LDUsNSw1aDYyLjA5N2MyLjc2MiwwLDUtMi4yMzgsNS01di05OC45MThjMC0zMy4zMzMsOS4wNTQtNDYuMzE5LDMyLjI5LTQ2LjMxOSBjMjUuMzA2LDAsMjcuMzE3LDIwLjgxOCwyNy4zMTcsNDguMDM0djk3LjIwNGMwLDIuNzYyLDIuMjM4LDUsNSw1SDMwNWMyLjc2MiwwLDUtMi4yMzgsNS01VjE5NC45OTUgQzMxMCwxNDUuNDMsMzAwLjU0OSw5NC43NjEsMjMwLjQ1NCw5NC43NjF6Ii8+IDwvZz4gPC9nPgoNPC9zdmc+" 
-        alt="LinkedIn logo" 
-        title="LinkedIn" 
-        height="15" 
-        style="vertical-align: middle; margin-left: 5px;" />](https://linkedin.com/in/hamzamaach)
 - Rachid Serraf
   [<img src="https://img.shields.io/badge/Github-%23000000.svg?logo=Github&logoColor=white" 
         alt="Github logo" 
@@ -43,8 +32,10 @@ BuyMesh is a microservices-based e-commerce marketplace built with Spring Boot. 
 6. [User Service Documentaion](./backend/user-service/README.md)
 7. [Product Service Documentaion](./backend/product-service/README.md)
 8. [Media Service Documentaion](./backend/media-service/README.md)
-9. [Discovery Server Documentaion](./backend/discovery-server/README.md)
-10. [Local Development](./docs/LOCAL_DEVELOPMENT.md) – Run infrastructure in Docker and services on your host
+9. [Order Service Documentaion](./backend/order-service/README.md)
+10. [Discovery Server Documentaion](./backend/discovery-server/README.md)
+11. [Order & Checkout Flow](./docs/ORDER_FLOW.md) – Cart, checkout, order lifecycle, and stock synchronization
+12. [Local Development](./docs/LOCAL_DEVELOPMENT.md) – Run infrastructure in Docker and services on your host
 
 ---
 
@@ -59,14 +50,16 @@ BuyMesh is a microservices-based e-commerce marketplace built with Spring Boot. 
 | User Service     | 8081 | Authentication & user management    |
 | Product Service  | 8082 | Product catalog management          |
 | Media Service    | 8083 | Media file storage                  |
+| Order Service    | 8084 | Cart, checkout & order lifecycle    |
 
 ### Databases
 
-| Service            | Port  | Database |
-| ------------------ | ----- | -------- |
-| MongoDB (Users)    | 27017 | users    |
-| MongoDB (Products) | 27018 | products |
-| MongoDB (Media)    | 27019 | media    |
+| Service            | Port  | Database    |
+| ------------------ | ----- | ----------- |
+| MongoDB (Users)    | 27017 | users       |
+| MongoDB (Products) | 27018 | products    |
+| MongoDB (Media)    | 27019 | media       |
+| MongoDB (Orders)   | 27020 | mongo-order |
 
 ### Message Broker
 
@@ -94,7 +87,8 @@ backend/
 ├── discovery-server/   # Eureka Service Registry
 ├── user-service/       # User authentication & management
 ├── product-service/    # Product catalog (Reactive)
-└── media-service/      # Media file management (Reactive)
+├── media-service/      # Media file management (Reactive)
+└── order-service/      # Cart, checkout, orders & statistics
 ```
 
 ---
@@ -129,19 +123,19 @@ backend/
 │  • Route Management                                             │
 └─────────────────────────────────────────────────────────────────┘
                                 │
-                ┌───────────────┼───────────────┐
-                ▼               ▼               ▼
-┌─────────────────────┐ ┌──────────────┐ ┌─────────────────────┐
-│  User Service       │ │ Product      │ │ Media Service       │
-│  (8081)             │ │ Service      │ │ (8083)              │
-│                     │ │ (8082)       │ │                     │
-│ • Authentication    │ │              │ │ • File Upload       │
-│ • User Management   │ │ • Products   │ │ • File Storage      │
-│ • Registration      │ │ • Inventory  │ │ • Image Retrieval   │
-│ • Login/JWT         │ │              │ │                     │
-└─────────────────────┘ └──────────────┘ └─────────────────────┘
-                │               │               │
-                └───────────────┼───────────────┘
+                ┌───────────────┼───────────────┬───────────────┐
+                ▼               ▼               ▼               ▼
+┌─────────────────────┐ ┌──────────────┐ ┌─────────────────────┐ ┌─────────────────────┐
+│  User Service       │ │ Product      │ │ Media Service       │ │ Order Service       │
+│  (8081)             │ │ Service      │ │ (8083)              │ │ (8084)              │
+│                     │ │ (8082)       │ │                     │ │                     │
+│ • Authentication    │ │              │ │ • File Upload       │ │ • Cart & Checkout   │
+│ • User Management   │ │ • Products   │ │ • File Storage      │ │ • Order Lifecycle   │
+│ • Registration      │ │ • Inventory  │ │ • Image Retrieval   │ │ • Buyer/Seller Stats│
+│ • Login/JWT         │ │              │ │                     │ │ • Stock Events      │
+└─────────────────────┘ └──────────────┘ └─────────────────────┘ └─────────────────────┘
+                │               │               │               │
+                └───────────────┴───────────────┴───────────────┘
                                 │
                                 ▼
 ┌─────────────────────────────────────────────────────────────────┐
@@ -160,10 +154,10 @@ backend/
                 ▼                               ▼
 ┌──────────────────────────────┐   ┌─────────────────────────────┐
 │     MongoDB Instances        │   │     Additional Services     │
-├─────────────┬────────────────┤   │                             │
+├──────────────┬───────────────┤   │                             │
 │ Users (27017)│Products(27018)│   │ • Logging                   │
-│ Media (27019)│               │   │ • Monitoring                │
-└─────────────┴────────────────┘   └─────────────────────────────┘
+│ Media (27019)│Orders (27020) │   │ • Monitoring                │
+└──────────────┴───────────────┘   └─────────────────────────────┘
 ```
 
 ---
@@ -223,6 +217,21 @@ backend/
   - Kafka event consumption
   - Orphaned media cleanup
 
+### 6. Order Service
+
+- **Port:** 8084 (host port configurable via `ORDER_SERVICE_PORT`)
+- **Technology:** Spring Boot (Servlet) + OpenFeign
+- **Database:** MongoDB (27020)
+- **Responsibilities:**
+  - Shopping cart management
+  - Buy Now and cart checkout
+  - Order creation, status lifecycle, cancellation, and redo
+  - Buyer and seller order statistics
+  - Product validation through the Product Service (Feign)
+  - Stock reservation/release through Kafka (`order-stock-events`)
+
+See [Order & Checkout Flow](./docs/ORDER_FLOW.md) for the full lifecycle.
+
 ---
 
 ## Design Patterns
@@ -234,7 +243,7 @@ backend/
 
 2. **Event-Driven Architecture**
    - Kafka for asynchronous communication between services
-   - Decouples Product and Media services
+   - Decouples Order, Product, and Media services (orders publish stock events consumed by Products)
 
 3. **API Gateway Pattern**
    - Centralized entry point
@@ -307,6 +316,7 @@ docker compose -f docker-compose.mgmt.yml --project-name buymesh-mgmt up -d
 | User Service    | [http://localhost:8081/actuator/health](http://localhost:8081/actuator/health) |
 | Product Service | [http://localhost:8082/actuator/health](http://localhost:8082/actuator/health) |
 | Media Service   | [http://localhost:8083/actuator/health](http://localhost:8083/actuator/health) |
+| Order Service   | [http://localhost:8084/actuator/health](http://localhost:8084/actuator/health) |
 
 **Use Cases:**
 
