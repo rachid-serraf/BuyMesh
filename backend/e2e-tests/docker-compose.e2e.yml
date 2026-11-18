@@ -37,6 +37,7 @@ services:
       KAFKA_NUM_PARTITIONS: 3
       KAFKA_LOG_DIRS: /var/lib/kafka/data
     tmpfs:
+      - /var/lib/kafka/data:mode=1777
       - /var/lib/kafka/data
     networks: [e2e]
     healthcheck:
