@@ -20,7 +20,6 @@ def servicesList() {
 def imageRepo(svc) { return "${svc.id}-image" }                                   // user-service -> user-service-image
 def imageVar(svc)  { return svc.id.toUpperCase().replace('-', '_') + '_IMAGE' }   // user-service -> USER_SERVICE_IMAGE
 
-// Services selected by 'Detect Changes', in the same order as servicesList()
 def changedServices() {
     def ids = (env.CHANGED_SERVICES ?: '').tokenize(' ')
     def result = []
@@ -37,7 +36,6 @@ def imageExports(String tag) {
     return servicesList().collect { "export ${imageVar(it)}=${imageRepo(it)}:${tag}" }.join('\n') + '\n'
 }
 
-// "discovery-server-image api-gateway-image ..."
 def allRepos() {
     return servicesList().collect { imageRepo(it) }.join(' ')
 }
@@ -46,8 +44,8 @@ def allRepos() {
 def runParallel(List services, Closure body) {
     if (!services) return
 
-    int maxBatch = 2 // Limits active concurrent services to 2 globally
-    def batches = services.collate(maxBatch) // Splits the list into chunks of 2
+    int maxBatch = 2
+    def batches = services.collate(maxBatch)
 
     for (int i = 0; i < batches.size(); i++) {
         def batch = batches[i]
@@ -97,6 +95,13 @@ def rollback() {
         docker compose up -d --no-deps --force-recreate ${SERVICES_TO_DEPLOY}
         echo "Rollback complete — previous versions restored."
     ''')
+}
+
+def e2eImageExports(String tag) {
+    def changed = (env.CHANGED_SERVICES ?: '').tokenize(' ')
+    return servicesList().collect { svc ->
+        "export ${imageVar(svc)}=${imageRepo(svc)}:${changed.contains(svc.id) ? tag : 'latest'}"
+    }.join('\n') + '\n'
 }
 
 pipeline {
@@ -152,6 +157,7 @@ pipeline {
                     def infra = files.any { it in ['docker-compose.yml', 'Jenkinsfile', '.env'] }
 
                     env.INFRASTRUCTURE_CHANGED = infra.toString()
+                    env.E2E_CHANGED = files.any { it.startsWith('e2e-tests/') }.toString()
                     env.CHANGED_SERVICES = servicesList()
                         .findAll { svc -> infra || files.any { f -> f.startsWith(svc.dir + '/') } }
                         .collect { it.id }
@@ -240,6 +246,49 @@ pipeline {
                     for (svc in changedServices().findAll { it.type == 'maven' }) {
                         sh "docker run --rm --entrypoint java ${imageRepo(svc)}:${env.IMAGE_TAG} -version"
                     }
+                }
+            }
+        }
+
+        stage('E2E Tests') {
+            when {
+                allOf {
+                    branch 'main'
+                    not { changeRequest() }
+                    expression { env.CHANGED_SERVICES?.trim() || env.E2E_CHANGED == 'true' }
+                }
+            }
+            options { timeout(time: 20, unit: 'MINUTES') }
+            environment {
+                COMPOSE_PROJECT_NAME = "buymesh-e2e-${BUILD_NUMBER}"
+                E2E_GATEWAY_PORT     = '18080'
+            }
+            steps {
+                sh(e2eImageExports(env.IMAGE_TAG) + '''
+                    COMPOSE="docker compose -p ${COMPOSE_PROJECT_NAME} --env-file e2e-tests/.env.e2e -f e2e-tests/docker-compose.yml"
+                    $COMPOSE up -d --wait --wait-timeout 300
+
+                    if [ -f /.dockerenv ]; then
+                        # Jenkins runs in a container: join the e2e network, talk to the gateway by name
+                        docker network connect ${COMPOSE_PROJECT_NAME}_e2e "$(hostname)"
+                        BASE_URL=http://api-gateway:8080
+                    else
+                        BASE_URL=http://localhost:${E2E_GATEWAY_PORT}
+                    fi
+
+                    ./e2e-tests/mvnw -f e2e-tests/pom.xml -B test -DbaseUrl=$BASE_URL
+                ''')
+            }
+            post {
+                always {
+                    sh '''
+                        COMPOSE="docker compose -p ${COMPOSE_PROJECT_NAME} --env-file e2e-tests/.env.e2e -f e2e-tests/docker-compose.yml"
+                        docker network disconnect ${COMPOSE_PROJECT_NAME}_e2e "$(hostname)" 2>/dev/null || true
+                        $COMPOSE logs --no-color > e2e-compose.log 2>&1 || true
+                        $COMPOSE down -v --remove-orphans || true
+                    '''
+                    archiveArtifacts artifacts: 'e2e-compose.log', allowEmptyArchive: true
+                    junit testResults: 'e2e-tests/target/surefire-reports/*.xml', allowEmptyResults: true
                 }
             }
         }
