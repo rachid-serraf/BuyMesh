@@ -38,7 +38,6 @@ services:
       KAFKA_LOG_DIRS: /var/lib/kafka/data
     tmpfs:
       - /var/lib/kafka/data:mode=1777
-      - /var/lib/kafka/data
     networks: [e2e]
     healthcheck:
       test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 > /dev/null 2>&1"]
