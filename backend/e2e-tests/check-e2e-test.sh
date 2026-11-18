@@ -19,7 +19,6 @@ if $COMPOSE up -d --wait --wait-timeout 300; then
   nice -n 19 ./mvnw -B test -DbaseUrl=$BASE_URL 2>&1 | tee e2e-maven.log
   RESULT=${PIPESTATUS[0]}
 else
-else
   echo "=== STARTUP FAILED ==="
   $COMPOSE ps -a
   for s in $($COMPOSE ps -a --format '{{.Service}} {{.State}}' | awk '$2!="running"{print $1}'); do
