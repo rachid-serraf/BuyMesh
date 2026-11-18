@@ -16,8 +16,9 @@ cleanup() {
 trap cleanup EXIT
 
 if $COMPOSE up -d --wait --wait-timeout 300; then
-  nice -n 19 ./mvnw -B test -DbaseUrl=$BASE_URL
-  RESULT=$?
+  nice -n 19 ./mvnw -B test -DbaseUrl=$BASE_URL 2>&1 | tee e2e-maven.log
+  RESULT=${PIPESTATUS[0]}
+else
 else
   echo "=== STARTUP FAILED ==="
   $COMPOSE ps -a
