@@ -191,7 +191,7 @@ services:
       - JWT_EXPIRATION=${JWT_EXPIRATION}
       - MEDIA_SERVICE_URL=http://media-service:8083
     volumes:
-      - ./uploads/avatars:/app/uploads/avatars
+      - avatar-uploads:/app/uploads/avatars
     networks:
       - ecommerce-network
     healthcheck:
@@ -269,7 +269,7 @@ services:
       - JWT_PUBLIC_KEY=${JWT_PUBLIC_KEY}
       - UPLOAD_DIR=/app/uploads/media
     volumes:
-      - ./uploads/media:/app/uploads/media
+      - media-uploads:/app/uploads/media
     networks:
       - ecommerce-network
     healthcheck:
@@ -354,3 +354,5 @@ volumes:
   product-mongo-data:
   media-mongo-data:
   kafka-data:
+  avatar-uploads:
+  media-uploads:
