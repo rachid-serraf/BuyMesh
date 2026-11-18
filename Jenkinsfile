@@ -265,7 +265,7 @@ pipeline {
             }
             steps {
                 sh(e2eImageExports(env.IMAGE_TAG) + '''
-                    COMPOSE="docker compose -p ${COMPOSE_PROJECT_NAME} --env-file e2e-tests/.env.e2e -f e2e-tests/docker-compose.yml"
+                    COMPOSE="docker compose -p ${COMPOSE_PROJECT_NAME} --env-file e2e-tests/.env -f e2e-tests/docker-compose.yml"
                     $COMPOSE up -d --wait --wait-timeout 300
 
                     if [ -f /.dockerenv ]; then
@@ -282,7 +282,7 @@ pipeline {
             post {
                 always {
                     sh '''
-                        COMPOSE="docker compose -p ${COMPOSE_PROJECT_NAME} --env-file e2e-tests/.env.e2e -f e2e-tests/docker-compose.yml"
+                        COMPOSE="docker compose -p ${COMPOSE_PROJECT_NAME} --env-file e2e-tests/.env -f e2e-tests/docker-compose.yml"
                         docker network disconnect ${COMPOSE_PROJECT_NAME}_e2e "$(hostname)" 2>/dev/null || true
                         $COMPOSE logs --no-color > e2e-compose.log 2>&1 || true
                         $COMPOSE down -v --remove-orphans || true
