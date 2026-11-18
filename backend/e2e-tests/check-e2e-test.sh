@@ -6,14 +6,25 @@ for s in discovery-server api-gateway user-service product-service media-service
 done
 
 COMPOSE="docker compose -p buymesh-e2e-manual --env-file .env -f docker-compose.e2e.yml"
+BASE_URL="http://localhost:18080"
+RESULT=1
+
+cleanup() {
+  $COMPOSE logs --no-color > e2e-compose.log 2>&1   # keep logs for debugging
+  $COMPOSE down -v --remove-orphans
+}
+trap cleanup EXIT
 
 if $COMPOSE up -d --wait --wait-timeout 300; then
-  curl -s http://localhost:18080/actuator/health; echo
-  ./mvnw -B test -DbaseUrl=http://localhost:18080
+  nice -n 19 ./mvnw -B test -DbaseUrl=$BASE_URL
+  RESULT=$?
 else
   echo "=== STARTUP FAILED ==="
   $COMPOSE ps -a
-  $COMPOSE logs --tail=40 kafka    # add other failing services here
+  for s in $($COMPOSE ps -a --format '{{.Service}} {{.State}}' | awk '$2!="running"{print $1}'); do
+    echo "--- logs: $s ---"; $COMPOSE logs --tail=40 $s
+  done
 fi
 
-$COMPOSE down -v --remove-orphans
+[ $RESULT -eq 0 ] && echo "E2E PASSED" || echo "E2E FAILED (see e2e-compose.log)"
+exit $RESULT
