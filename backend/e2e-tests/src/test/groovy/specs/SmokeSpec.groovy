@@ -7,7 +7,7 @@ import spock.util.concurrent.PollingConditions
 
 class SmokeSpec extends Specification {
 
-  @Shared String base = System.getProperty("baseUrl", "http://localhost:18080")
+  @Shared String base = System.getProperty("baseUrl", "https://localhost:18080")
 
   def setupSpec() {
     RestAssured.baseURI = base

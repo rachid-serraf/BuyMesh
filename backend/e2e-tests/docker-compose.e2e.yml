@@ -6,8 +6,10 @@ x-mongo-health: &mongo-health
 
 services:
   discovery-server:
-    image: ${DISCOVERY_SERVER_IMAGE}
-    build: ../backend/discovery-server
+    image: ${DISCOVERY_SERVER_IMAGE:-discovery-server-image:latest}
+    build:
+      context: ../discovery-server
+      dockerfile: dockerfile
     environment:
       - TZ=${TZ}
       - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
@@ -90,8 +92,8 @@ services:
     healthcheck: *mongo-health
 
   user-service:
-    image: ${USER_SERVICE_IMAGE}
-    build: ../backend/user-service
+    image: ${USER_SERVICE_IMAGE:-user-service-image:latest}
+    build: ../user-service
     depends_on:
       mongo-user: { condition: service_healthy }
       discovery-server: { condition: service_healthy }
@@ -123,8 +125,8 @@ services:
       start_period: 40s
 
   product-service:
-    image: ${PRODUCT_SERVICE_IMAGE}
-    build: ../backend/product-service
+    image: ${PRODUCT_SERVICE_IMAGE:-product-service-image:latest}
+    build: ../product-service
     depends_on:
       user-service: { condition: service_healthy }
       mongo-product: { condition: service_healthy }
@@ -154,8 +156,8 @@ services:
       start_period: 40s
 
   media-service:
-    image: ${MEDIA_SERVICE_IMAGE}
-    build: ../backend/media-service
+    image: ${MEDIA_SERVICE_IMAGE:-media-service-image:latest}
+    build: ../media-service
     depends_on:
       product-service: { condition: service_healthy }
       mongo-media: { condition: service_healthy }
@@ -186,8 +188,8 @@ services:
       start_period: 40s
 
   order-service:
-    image: ${ORDER_SERVICE_IMAGE}
-    build: ../backend/order-service
+    image: ${ORDER_SERVICE_IMAGE:-order-service-image:latest}
+    build: ../order-service
     depends_on:
       media-service: { condition: service_healthy }
       mongo-order: { condition: service_healthy }
@@ -220,9 +222,9 @@ services:
       start_period: 40s
 
   api-gateway:
-    image: ${API_GATEWAY_IMAGE}
+    image: ${API_GATEWAY_IMAGE:-api-gateway-image:latest}
     build:
-      context: ../backend/api-gateway
+      context: ../api-gateway
       dockerfile: Dockerfile
       args:
         SSL_PASSWORD: ${SSL_PASSWORD}
@@ -248,7 +250,7 @@ services:
       - "127.0.0.1:${E2E_GATEWAY_PORT:-18080}:8080"   # the ONLY published port
     networks: [e2e]
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:8080/actuator/health"]
+      test: ["CMD", "curl", "-kf", "https://localhost:8080/actuator/health"]
       interval: 10s
       timeout: 5s
       retries: 15
@@ -257,7 +259,7 @@ services:
   # Only started with: --profile ui (Playwright later)
   frontend:
     profiles: ["ui"]
-    build: ../frontend
+    build: ../../frontend
     depends_on:
       api-gateway: { condition: service_healthy }
     ports:

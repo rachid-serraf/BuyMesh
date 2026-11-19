@@ -14,7 +14,8 @@ FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
 # Install openssl to generate the keystore at runtime using the .env SSL_PASSWORD
-RUN apk add --no-cache openssl
+# curl is used by the container healthcheck (busybox wget cannot skip TLS verification)
+RUN apk add --no-cache openssl curl
 
 # Copy the built JAR
 COPY --from=build /app/target/*.jar app.jar
