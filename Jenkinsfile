@@ -251,13 +251,13 @@ pipeline {
         }
 
         stage('E2E Tests') {
-            // when {
-            //     allOf {
-            //         branch 'main'
-            //         not { changeRequest() }
-            //         expression { env.CHANGED_SERVICES?.trim() || env.E2E_CHANGED == 'true' }
-            //     }
-            // }
+            when {
+                allOf {
+                    branch 'main'
+                    not { changeRequest() }
+                    expression { env.CHANGED_SERVICES?.trim() || env.E2E_CHANGED == 'true' }
+                }
+            }
             options { timeout(time: 20, unit: 'MINUTES') }
             environment {
                 COMPOSE_PROJECT_NAME = "buymesh-e2e-${BUILD_NUMBER}"
