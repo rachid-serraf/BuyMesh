@@ -72,6 +72,7 @@ export class ProductDetail implements OnInit {
   qty = signal(1);
   wished = signal(false);
   buying = signal(false);
+  isSeller = computed(() => this.authService.user?.role === 'SELLER');
   private recent = signal<ProductListDto[]>([]);
   private lastAddress: OrderAddress | null = null;
 
@@ -151,6 +152,11 @@ export class ProductDetail implements OnInit {
   }
 
   async buyNow(): Promise<void> {
+    if (this.isSeller()) {
+      this.snackBar.open('Sellers cannot buy products.', 'Close', { duration: 3000 });
+      return;
+    }
+
     const product = this.product();
     if (!product || product.quantity < 1 || this.buying()) {
       return;

@@ -245,6 +245,24 @@ describe('ProductDetail', () => {
     expect(orderService.buyNow).not.toHaveBeenCalled();
   });
 
+  it('hides buying controls from sellers and refuses buy now', async () => {
+    authService.user = { id: 'seller-1', role: 'SELLER' };
+    authService.isAuthenticated = true;
+    spyOn(component.snackBar, 'open');
+
+    fixture.detectChanges();
+    await component.buyNow();
+
+    expect(fixture.nativeElement.querySelector('.seller-buy-notice')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('.buy-actions')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.buy-bar')).toBeNull();
+    expect(component.snackBar.open).toHaveBeenCalledWith('Sellers cannot buy products.', 'Close', {
+      duration: 3000,
+    });
+    expect(dialog.open).not.toHaveBeenCalled();
+    expect(orderService.buyNow).not.toHaveBeenCalled();
+  });
+
   it('navigates to the product edit page', () => {
     component.goToEdit();
 

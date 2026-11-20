@@ -4,36 +4,43 @@
   [class.btn-icon]="iconOnly()"
   [class.is-added]="status() === 'added'"
   [class.is-error]="status() === 'error'"
-  [disabled]="disabled()"
+  [disabled]="disabled() || isSeller()"
   [attr.aria-busy]="status() === 'loading'"
   [attr.aria-label]="ariaLabel()"
-  [attr.title]="status() === 'error' ? errorMessage() : null"
+  [attr.title]="isSeller() ? 'Sellers cannot buy products' : status() === 'error' ? errorMessage() : null"
   (click)="add($event)"
   (keydown.enter)="$event.stopPropagation()"
 >
-  @switch (status()) {
-    @case ('loading') {
-      <span class="spinner" aria-hidden="true"></span>
-      @if (!iconOnly()) {
-        Adding…
-      }
+  @if (isSeller()) {
+    <lucide-angular [img]="ShoppingCart" [size]="18"></lucide-angular>
+    @if (!iconOnly()) {
+      Sellers can't buy
     }
-    @case ('added') {
-      <lucide-angular [img]="Check" [size]="18"></lucide-angular>
-      @if (!iconOnly()) {
-        Added
+  } @else {
+    @switch (status()) {
+      @case ('loading') {
+        <span class="spinner" aria-hidden="true"></span>
+        @if (!iconOnly()) {
+          Adding…
+        }
       }
-    }
-    @case ('error') {
-      <lucide-angular [img]="CircleAlert" [size]="18"></lucide-angular>
-      @if (!iconOnly()) {
-        Not added
+      @case ('added') {
+        <lucide-angular [img]="Check" [size]="18"></lucide-angular>
+        @if (!iconOnly()) {
+          Added
+        }
       }
-    }
-    @default {
-      <lucide-angular [img]="ShoppingCart" [size]="18"></lucide-angular>
-      @if (!iconOnly()) {
-        Add to cart
+      @case ('error') {
+        <lucide-angular [img]="CircleAlert" [size]="18"></lucide-angular>
+        @if (!iconOnly()) {
+          Not added
+        }
+      }
+      @default {
+        <lucide-angular [img]="ShoppingCart" [size]="18"></lucide-angular>
+        @if (!iconOnly()) {
+          Add to cart
+        }
       }
     }
   }

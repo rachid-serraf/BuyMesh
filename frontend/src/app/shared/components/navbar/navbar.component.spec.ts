@@ -125,6 +125,15 @@ describe('NavbarComponent', () => {
     expect(el().querySelector('.new-product-btn')).not.toBeNull();
   });
 
+  it('hides the cart from sellers', () => {
+    auth.isAuthenticated = true;
+    auth.isSeller = true;
+    auth.user = { name: 'Demo', email: 'demo@example.com', role: 'SELLER' };
+    render();
+
+    expect(cartButton()).toBeNull();
+  });
+
   it('toggles the mobile menu', () => {
     render();
 

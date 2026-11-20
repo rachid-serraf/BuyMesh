@@ -147,6 +147,19 @@ class OrderServiceSpec extends Specification {
         result.total == new BigDecimal("9.99")
     }
 
+    def "createOrder rejects sellers"() {
+        when:
+        orderService.createOrder(
+                seller(UUID.randomUUID()),
+                new CreateOrderRequest(null, "seller-1", [item()], null))
+
+        then:
+        def ex = thrown(OrderAccessDeniedException)
+        ex.message == "Only clients can buy products"
+        0 * orderRepository.save(_)
+        0 * productClient.reserveStock(_)
+    }
+
     def "createOrder rejects an empty item list"() {
         when:
         orderService.createOrder(buyer(UUID.randomUUID()), new CreateOrderRequest(null, "seller-1", [], null))
@@ -227,6 +240,17 @@ class OrderServiceSpec extends Specification {
         result.items[0].quantity == 2
         result.address == address()
         result.createdAt != null
+    }
+
+    def "buyNow rejects sellers"() {
+        when:
+        orderService.buyNow(seller(UUID.randomUUID()), new BuyNowRequest("product-1", 1, address()))
+
+        then:
+        def ex = thrown(OrderAccessDeniedException)
+        ex.message == "Only clients can buy products"
+        0 * productClient.getProduct(_)
+        0 * orderRepository.save(_)
     }
 
     def "buyNow requires a delivery address"() {
