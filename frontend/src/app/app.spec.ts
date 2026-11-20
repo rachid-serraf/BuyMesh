@@ -11,6 +11,13 @@ import { cartItems } from './features/cart/cart-ui.state';
 describe('AppComponent', () => {
   let currentUser$: BehaviorSubject<unknown>;
   let cartService: jasmine.SpyObj<CartService>;
+  let auth: {
+    user: unknown;
+    isAuthenticated: boolean;
+    isSeller: boolean;
+    getUserRole: () => string | null;
+    currentUser$: ReturnType<BehaviorSubject<unknown>['asObservable']>;
+  };
 
   const cart: CartDto = {
     id: 'cart-1',
@@ -37,19 +44,18 @@ describe('AppComponent', () => {
       'removeItem',
     ]);
     cartService.getCart.and.returnValue(of(null));
+    auth = {
+      user: null,
+      isAuthenticated: false,
+      isSeller: false,
+      getUserRole: () => null,
+      currentUser$: currentUser$.asObservable(),
+    };
 
     TestBed.configureTestingModule({
       providers: [
         provideRouter(routes),
-        {
-          provide: AuthService,
-          useValue: {
-            user: null,
-            isAuthenticated: false,
-            isSeller: false,
-            currentUser$: currentUser$.asObservable(),
-          },
-        },
+        { provide: AuthService, useValue: auth },
         { provide: CartService, useValue: cartService },
       ],
     });
@@ -78,6 +84,17 @@ describe('AppComponent', () => {
     expect(cartItems().map((item) => item.name)).toEqual(['Phone']);
   });
 
+  it('does not load a cart for sellers', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+
+    currentUser$.next({ name: 'Seller', email: 'seller@example.com', role: 'SELLER' });
+    fixture.detectChanges();
+
+    expect(cartService.getCart).not.toHaveBeenCalled();
+    expect(cartItems()).toEqual([]);
+  });
+
   it('clears the cart when the user logs out', () => {
     cartItems.set([
       {
@@ -100,6 +117,9 @@ describe('AppComponent', () => {
   });
 
   it('serves the cart page at /cart instead of the catch-all redirect', async () => {
+    auth.user = { name: 'Demo', email: 'demo@example.com', role: 'CLIENT' };
+    auth.isAuthenticated = true;
+    auth.getUserRole = () => 'CLIENT';
     const fixture = TestBed.createComponent(AppComponent);
     const router = TestBed.inject(Router);
 

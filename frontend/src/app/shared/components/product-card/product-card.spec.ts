@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { AuthService } from '../../../core/auth/services/auth.service';
 import { ProductListDto } from '../../../core/models/product.model';
 import { CartService } from '../../../core/services/cart.service';
 import { env } from '../../../../environments/environment';
@@ -25,6 +26,10 @@ describe('ProductCard', () => {
         {
           provide: CartService,
           useValue: jasmine.createSpyObj<CartService>('CartService', ['addItem']),
+        },
+        {
+          provide: AuthService,
+          useValue: { user: null, isAuthenticated: false },
         },
       ],
     });

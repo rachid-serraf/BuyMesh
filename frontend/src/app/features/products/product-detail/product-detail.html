@@ -114,41 +114,51 @@
           </div>
         </div>
 
-        <!-- Buy actions (UI only for now) -->
-        <div class="buy-actions">
-          <button
-            type="button"
-            class="btn btn-primary btn-lg buy-btn"
-            [disabled]="p.quantity < 1 || buying()"
-            [attr.aria-busy]="buying()"
-            (click)="buyNow()"
-          >
-            <lucide-angular [img]="icons.ShoppingBag" [size]="18"></lucide-angular>
-            {{ buying() ? 'Placing order…' : 'Buy now' }}
-          </button>
-          <div class="cart-row">
-            <app-add-to-cart-button
-              class="cart-btn"
-              buttonClass="btn btn-secondary btn-lg"
-              [product]="cartProduct()!"
-              [quantity]="qty()"
-              [disabled]="p.quantity < 1"
-            ></app-add-to-cart-button>
+        @if (isSeller()) {
+          <div class="alert alert-warning seller-buy-notice" role="status">
+            <lucide-angular [img]="icons.CircleAlert" [size]="20"></lucide-angular>
+            <div class="alert-body">
+              <div class="alert-title">Seller account</div>
+              <div class="alert-text">Sellers cannot buy products or add them to the cart.</div>
+            </div>
+          </div>
+        } @else {
+          <!-- Buy actions (UI only for now) -->
+          <div class="buy-actions">
             <button
               type="button"
-              class="btn btn-secondary btn-lg btn-icon wish-btn"
-              [class.active]="wished()"
-              [attr.aria-pressed]="wished()"
-              [attr.aria-label]="wished() ? 'Remove from wishlist' : 'Add to wishlist'"
-              (click)="wished.set(!wished())"
+              class="btn btn-primary btn-lg buy-btn"
+              [disabled]="p.quantity < 1 || buying()"
+              [attr.aria-busy]="buying()"
+              (click)="buyNow()"
             >
-              <lucide-angular [img]="icons.Heart" [size]="18"></lucide-angular>
+              <lucide-angular [img]="icons.ShoppingBag" [size]="18"></lucide-angular>
+              {{ buying() ? 'Placing order…' : 'Buy now' }}
             </button>
-            <button type="button" class="btn btn-secondary btn-lg btn-icon" aria-label="Copy link" (click)="share()">
-              <lucide-angular [img]="icons.Share2" [size]="18"></lucide-angular>
-            </button>
+            <div class="cart-row">
+              <app-add-to-cart-button
+                class="cart-btn"
+                buttonClass="btn btn-secondary btn-lg"
+                [product]="cartProduct()!"
+                [quantity]="qty()"
+                [disabled]="p.quantity < 1"
+              ></app-add-to-cart-button>
+              <button
+                type="button"
+                class="btn btn-secondary btn-lg btn-icon wish-btn"
+                [class.active]="wished()"
+                [attr.aria-pressed]="wished()"
+                [attr.aria-label]="wished() ? 'Remove from wishlist' : 'Add to wishlist'"
+                (click)="wished.set(!wished())"
+              >
+                <lucide-angular [img]="icons.Heart" [size]="18"></lucide-angular>
+              </button>
+              <button type="button" class="btn btn-secondary btn-lg btn-icon" aria-label="Copy link" (click)="share()">
+                <lucide-angular [img]="icons.Share2" [size]="18"></lucide-angular>
+              </button>
+            </div>
           </div>
-        </div>
+        }
 
         <!-- Delivery & services (static store info) -->
         <ul class="services">
@@ -269,18 +279,20 @@
     }
 
     <!-- Mobile sticky buy bar -->
-    <div class="buy-bar">
-      <div class="buy-bar-price">
-        <span class="current-price">${{ p.price.toFixed(2) }}</span>
-        <span class="tax-note">Tax included</span>
+    @if (!isSeller()) {
+      <div class="buy-bar">
+        <div class="buy-bar-price">
+          <span class="current-price">${{ p.price.toFixed(2) }}</span>
+          <span class="tax-note">Tax included</span>
+        </div>
+        <app-add-to-cart-button
+          class="cart-btn"
+          buttonClass="btn btn-primary"
+          [product]="cartProduct()!"
+          [quantity]="qty()"
+          [disabled]="p.quantity < 1"
+        ></app-add-to-cart-button>
       </div>
-      <app-add-to-cart-button
-        class="cart-btn"
-        buttonClass="btn btn-primary"
-        [product]="cartProduct()!"
-        [quantity]="qty()"
-        [disabled]="p.quantity < 1"
-      ></app-add-to-cart-button>
-    </div>
+    }
   }
 </div>

@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router, provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 
+import { AuthService } from '../../../core/auth/services/auth.service';
 import { ProductListDto } from '../../../core/models/product.model';
 import { ProductService } from '../../../core/services/product.service';
 import { CartService } from '../../../core/services/cart.service';
@@ -53,6 +54,10 @@ describe('ProductList', () => {
         {
           provide: CartService,
           useValue: jasmine.createSpyObj<CartService>('CartService', ['addItem']),
+        },
+        {
+          provide: AuthService,
+          useValue: { user: null, isAuthenticated: false },
         },
         provideRouter([]), // real test router: needed by routerLink
         { provide: ActivatedRoute, useValue: { snapshot: { data: {} } } },
