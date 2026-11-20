@@ -264,20 +264,22 @@ pipeline {
                 E2E_GATEWAY_PORT     = '18080'
             }
             steps {
-                sh(e2eImageExports(env.IMAGE_TAG) + '''
-                    COMPOSE="docker compose -p ${COMPOSE_PROJECT_NAME} --env-file e2e-tests/.env -f e2e-tests/docker-compose.e2e.yml"
-                    $COMPOSE up -d --wait --wait-timeout 300
+                dir('backend/e2e-tests') {
+                    sh(e2eImageExports(env.IMAGE_TAG) + '''
+                        COMPOSE="docker compose -p ${COMPOSE_PROJECT_NAME} --env-file e2e-tests/.env -f e2e-tests/docker-compose.e2e.yml"
+                        $COMPOSE up -d --wait --wait-timeout 300
 
-                    if [ -f /.dockerenv ]; then
-                        # Jenkins runs in a container: join the e2e network, talk to the gateway by name
-                        docker network connect ${COMPOSE_PROJECT_NAME}_e2e "$(hostname)"
-                        BASE_URL=https://api-gateway:8080
-                    else
-                        BASE_URL=https://localhost:${E2E_GATEWAY_PORT}
-                    fi
+                        if [ -f /.dockerenv ]; then
+                            # Jenkins runs in a container: join the e2e network, talk to the gateway by name
+                            docker network connect ${COMPOSE_PROJECT_NAME}_e2e "$(hostname)"
+                            BASE_URL=https://api-gateway:8080
+                        else
+                            BASE_URL=https://localhost:${E2E_GATEWAY_PORT}
+                        fi
 
-                    ./e2e-tests/mvnw -f e2e-tests/pom.xml -B test -DbaseUrl=$BASE_URL
-                ''')
+                        ./e2e-tests/mvnw -f e2e-tests/pom.xml -B test -DbaseUrl=$BASE_URL
+                    ''')
+                }
             }
             post {
                 always {
