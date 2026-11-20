@@ -1,5 +1,6 @@
 import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { Subject, throwError } from 'rxjs';
+import { AuthService } from '../../../core/auth/services/auth.service';
 import { CartService } from '../../../core/services/cart.service';
 import { CartDto } from '../../../core/models/cart.model';
 import { cartItems, CartProduct, cartToast, hideCartToast } from '../cart-ui.state';
@@ -8,6 +9,7 @@ import { AddToCartButton } from './add-to-cart-button';
 describe('AddToCartButton', () => {
   let fixture: ComponentFixture<AddToCartButton>;
   let cartService: jasmine.SpyObj<CartService>;
+  let authService: { user: { role: string } | null };
   let response$: Subject<CartDto>;
 
   const product: CartProduct = {
@@ -62,9 +64,13 @@ describe('AddToCartButton', () => {
     response$ = new Subject<CartDto>();
     cartService = jasmine.createSpyObj<CartService>('CartService', ['addItem']);
     cartService.addItem.and.returnValue(response$.asObservable());
+    authService = { user: null };
 
     TestBed.configureTestingModule({
-      providers: [{ provide: CartService, useValue: cartService }],
+      providers: [
+        { provide: CartService, useValue: cartService },
+        { provide: AuthService, useValue: authService },
+      ],
     });
 
     fixture = TestBed.createComponent(AddToCartButton);
@@ -178,6 +184,19 @@ describe('AddToCartButton', () => {
     fixture.componentRef.setInput('disabled', true);
     fixture.detectChanges();
     expect(button().disabled).toBeTrue();
+  });
+
+  it('is disabled for sellers and never calls the API', () => {
+    authService.user = { role: 'SELLER' };
+    fixture = TestBed.createComponent(AddToCartButton);
+    fixture.componentRef.setInput('product', product);
+    fixture.detectChanges();
+
+    expect(button().disabled).toBeTrue();
+    expect(button().textContent).toContain("Sellers can't buy");
+
+    button().click();
+    expect(cartService.addItem).not.toHaveBeenCalled();
   });
 
   it('uses the given button classes', () => {

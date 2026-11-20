@@ -15,7 +15,7 @@ BASE_URL="https://localhost:${E2E_GATEWAY_PORT:-18080}"
 RESULT=1
 
 cleanup() {
-  $COMPOSE down -v --remove-orphans
+   $COMPOSE down -v --remove-orphans
 }
 trap cleanup EXIT
 
@@ -30,5 +30,5 @@ else
   done
 fi
 
-[ $RESULT -eq 0 ] && echo "E2E PASSED" || echo "E2E FAILED (see e2e-compose.log)"
+[ $RESULT -eq 0 ] && echo "E2E PASSED" || echo "E2E FAILED (see e2e-maven.log)"
 exit $RESULT

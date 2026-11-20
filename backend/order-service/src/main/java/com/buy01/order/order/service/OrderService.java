@@ -62,6 +62,7 @@ public class OrderService {
     private final ProductClient productClient;
 
     public OrderResponse createOrder(UserPrincipal actor, CreateOrderRequest request) {
+        requireClient(actor);
         return createOrderForBuyer(actor.id(), request);
     }
 
@@ -83,6 +84,7 @@ public class OrderService {
     }
 
     public OrderResponse buyNow(UserPrincipal actor, BuyNowRequest request) {
+        requireClient(actor);
         if (request == null || !StringUtils.hasText(request.productId())) {
             throw new InvalidOrderException("productId is required");
         }
@@ -385,6 +387,15 @@ public class OrderService {
     private void requireSeller(UserPrincipal actor) {
         if (actor.role() != Role.SELLER) {
             throw new OrderAccessDeniedException("Only sellers can perform this action");
+        }
+    }
+
+    private void requireClient(UserPrincipal actor) {
+        if (actor == null) {
+            throw new OrderAccessDeniedException("Authentication required");
+        }
+        if (actor.role() != Role.CLIENT) {
+            throw new OrderAccessDeniedException("Only clients can buy products");
         }
     }
 

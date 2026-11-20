@@ -259,6 +259,16 @@ class OrderServiceSpec extends Specification {
         thrown(InvalidOrderException)
     }
 
+    def "buyNow rejects a seller"() {
+        when:
+        orderService.buyNow(seller(UUID.randomUUID()), new BuyNowRequest("product-1", 1, address()))
+
+        then:
+        0 * productClient.getProduct(_)
+        0 * orderRepository.save(_)
+        thrown(OrderAccessDeniedException)
+    }
+
     def "getBuyerOrders searches by buyer and paginates"() {
         given:
         def buyerId = UUID.randomUUID()
