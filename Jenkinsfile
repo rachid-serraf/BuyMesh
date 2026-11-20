@@ -284,14 +284,16 @@ pipeline {
             }
             post {
                 always {
-                    sh '''
-                        COMPOSE="docker compose -p ${COMPOSE_PROJECT_NAME} --env-file e2e-tests/.env -f e2e-tests/docker-compose.e2e.yml"
-                        docker network disconnect ${COMPOSE_PROJECT_NAME}_e2e "$(hostname)" 2>/dev/null || true
-                        $COMPOSE logs --no-color > e2e-compose.log 2>&1 || true
-                        $COMPOSE down -v --remove-orphans || true
-                    '''
-                    archiveArtifacts artifacts: 'e2e-compose.log', allowEmptyArchive: true
-                    junit testResults: 'e2e-tests/target/surefire-reports/*.xml', allowEmptyResults: true
+                    dir('backend/e2e-tests') {
+                        sh '''
+                            COMPOSE="docker compose -p ${COMPOSE_PROJECT_NAME} --env-file .env -f docker-compose.e2e.yml"
+                            docker network disconnect ${COMPOSE_PROJECT_NAME}_e2e "$(hostname)" 2>/dev/null || true
+                            $COMPOSE logs --no-color > e2e-compose.log 2>&1 || true
+                            $COMPOSE down -v --remove-orphans || true
+                        '''
+                        archiveArtifacts artifacts: 'e2e-compose.log', allowEmptyArchive: true
+                        junit testResults: 'target/surefire-reports/*.xml', allowEmptyResults: true
+                    }
                 }
             }
         }
