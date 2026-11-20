@@ -1,7 +1,6 @@
 import { Component, computed, DestroyRef, inject, input, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Check, CircleAlert, LucideAngularModule, ShoppingCart } from 'lucide-angular';
-import { AuthService } from '../../../core/auth/services/auth.service';
 import { CartService } from '../../../core/services/cart.service';
 import { announceCartAdded, CartProduct, syncCart } from '../cart-ui.state';
 
@@ -28,10 +27,7 @@ export class AddToCartButton {
   status = signal<'idle' | 'loading' | 'added' | 'error'>('idle');
   errorMessage = signal<string | null>(null);
 
-  readonly isSeller = computed(() => this.authService.user?.role === 'SELLER');
-
   ariaLabel = computed(() => {
-    if (this.isSeller()) return `Sellers cannot add ${this.product().name} to cart`;
     if (!this.iconOnly()) return null;
     const name = this.product().name;
     switch (this.status()) {
@@ -46,7 +42,6 @@ export class AddToCartButton {
     }
   });
 
-  private readonly authService = inject(AuthService);
   private readonly cartService = inject(CartService);
   private readonly destroyRef = inject(DestroyRef);
   private timer?: ReturnType<typeof setTimeout>;
@@ -58,7 +53,7 @@ export class AddToCartButton {
   add(event: Event): void {
     // The shop card behind this button navigates on click.
     event.stopPropagation();
-    if (this.isSeller() || this.status() !== 'idle') return;
+    if (this.status() !== 'idle') return;
 
     this.errorMessage.set(null);
     this.status.set('loading');

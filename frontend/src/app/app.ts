@@ -31,7 +31,7 @@ export class AppComponent implements OnInit {
     this.authService.currentUser$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((user) => {
-        if (user && user.role === 'CLIENT') {
+        if (user) {
           this.loadCart();
         } else {
           cartItems.set([]);

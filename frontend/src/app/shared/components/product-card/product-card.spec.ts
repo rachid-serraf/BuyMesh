@@ -1,6 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ProductListDto } from '../../../core/models/product.model';
-import { AuthService } from '../../../core/auth/services/auth.service';
 import { CartService } from '../../../core/services/cart.service';
 import { env } from '../../../../environments/environment';
 import { MOCK_DEFAULT_STOCK } from '../../../features/cart/cart.mock';
@@ -27,7 +26,6 @@ describe('ProductCard', () => {
           provide: CartService,
           useValue: jasmine.createSpyObj<CartService>('CartService', ['addItem']),
         },
-        { provide: AuthService, useValue: { user: null } },
       ],
     });
     fixture = TestBed.createComponent(ProductCard);

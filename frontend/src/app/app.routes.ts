@@ -80,7 +80,6 @@ export const routes: Routes = [
   },
   {
     path: 'cart',
-    canActivate: [roleGuard(['CLIENT'])],
     loadComponent: () => import('./features/cart/cart-page/cart-page').then((m) => m.CartPage),
   },
   {

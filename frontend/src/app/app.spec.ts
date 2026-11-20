@@ -11,13 +11,6 @@ import { cartItems } from './features/cart/cart-ui.state';
 describe('AppComponent', () => {
   let currentUser$: BehaviorSubject<unknown>;
   let cartService: jasmine.SpyObj<CartService>;
-  let authService: {
-    user: unknown;
-    isAuthenticated: boolean;
-    isSeller: boolean;
-    currentUser$: unknown;
-    getUserRole: () => string;
-  };
 
   const cart: CartDto = {
     id: 'cart-1',
@@ -44,18 +37,19 @@ describe('AppComponent', () => {
       'removeItem',
     ]);
     cartService.getCart.and.returnValue(of(null));
-    authService = {
-      user: null,
-      isAuthenticated: false,
-      isSeller: false,
-      currentUser$: currentUser$.asObservable(),
-      getUserRole: () => 'CLIENT',
-    };
 
     TestBed.configureTestingModule({
       providers: [
         provideRouter(routes),
-        { provide: AuthService, useValue: authService },
+        {
+          provide: AuthService,
+          useValue: {
+            user: null,
+            isAuthenticated: false,
+            isSeller: false,
+            currentUser$: currentUser$.asObservable(),
+          },
+        },
         { provide: CartService, useValue: cartService },
       ],
     });
@@ -106,8 +100,6 @@ describe('AppComponent', () => {
   });
 
   it('serves the cart page at /cart instead of the catch-all redirect', async () => {
-    authService.isAuthenticated = true;
-    authService.user = { name: 'Demo', email: 'demo@example.com', role: 'CLIENT' };
     const fixture = TestBed.createComponent(AppComponent);
     const router = TestBed.inject(Router);
 

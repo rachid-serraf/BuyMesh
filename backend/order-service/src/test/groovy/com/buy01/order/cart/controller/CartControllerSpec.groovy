@@ -96,17 +96,4 @@ class CartControllerSpec extends Specification {
         response.statusCode == HttpStatus.OK
         response.body == cart
     }
-
-    def "sellers cannot use the cart"() {
-        given:
-        def seller = new UserPrincipal(UUID.randomUUID(), "seller@example.com", Role.SELLER)
-
-        when:
-        controller.addToCart(new CartItemDTO.AddRequest("product-1", 1), seller)
-
-        then:
-        0 * cartService.addItem(_, _)
-        def ex = thrown(com.buy01.order.order.exception.OrderAccessDeniedException)
-        ex.message.contains("Only clients")
-    }
 }

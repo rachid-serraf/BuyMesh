@@ -9,8 +9,6 @@ import com.buy01.order.cart.dto.CheckoutRequest;
 import com.buy01.order.cart.dto.CheckoutResponse;
 import com.buy01.order.cart.model.entity.Cart;
 import com.buy01.order.cart.service.CartService;
-import com.buy01.order.common.Role;
-import com.buy01.order.order.exception.OrderAccessDeniedException;
 import com.buy01.order.security.JwtAuthenticationFilter.UserPrincipal;
 
 import jakarta.validation.Valid;
@@ -27,7 +25,6 @@ public class CartController {
     public ResponseEntity<Cart> addToCart(
             @Valid @RequestBody CartItemDTO.AddRequest request, @AuthenticationPrincipal UserPrincipal principal) {
 
-        requireClient(principal);
         Cart cart = cartService.addItem(principal.id(), request);
         // TODO: mapper Cart to CartResponse
         return ResponseEntity.ok(cart);
@@ -35,7 +32,6 @@ public class CartController {
 
     @GetMapping("/items")
     public ResponseEntity<Cart> getCartItems(@AuthenticationPrincipal UserPrincipal principal){
-        requireClient(principal);
         Cart cart = cartService.findByUserId(principal.id());
         return ResponseEntity.ok(cart);
     }
@@ -44,7 +40,6 @@ public class CartController {
     public ResponseEntity<CheckoutResponse> checkout(
             @AuthenticationPrincipal UserPrincipal principal,
             @Valid @RequestBody CheckoutRequest request) {
-        requireClient(principal);
         CheckoutResponse response = cartService.checkoutItems(principal.id(), request.address());
         return ResponseEntity.ok(response);
     }
@@ -53,17 +48,7 @@ public class CartController {
     public ResponseEntity<Cart> removeItem(
             @PathVariable String productId,
             @AuthenticationPrincipal UserPrincipal principal) {
-        requireClient(principal);
         Cart cart = cartService.removeItem(principal.id(), productId);
         return ResponseEntity.ok(cart);
-    }
-
-    private void requireClient(UserPrincipal principal) {
-        if (principal == null) {
-            throw new OrderAccessDeniedException("Authentication required");
-        }
-        if (principal.role() != Role.CLIENT) {
-            throw new OrderAccessDeniedException("Only clients can buy products or use the cart");
-        }
     }
 }

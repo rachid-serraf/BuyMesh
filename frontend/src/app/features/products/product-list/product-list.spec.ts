@@ -3,7 +3,6 @@ import { ActivatedRoute, Router, provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 
 import { ProductListDto } from '../../../core/models/product.model';
-import { AuthService } from '../../../core/auth/services/auth.service';
 import { ProductService } from '../../../core/services/product.service';
 import { CartService } from '../../../core/services/cart.service';
 import { ProductList } from './product-list';
@@ -55,7 +54,6 @@ describe('ProductList', () => {
           provide: CartService,
           useValue: jasmine.createSpyObj<CartService>('CartService', ['addItem']),
         },
-        { provide: AuthService, useValue: { user: null } },
         provideRouter([]), // real test router: needed by routerLink
         { provide: ActivatedRoute, useValue: { snapshot: { data: {} } } },
       ],
@@ -107,7 +105,6 @@ describe('ProductList', () => {
       imports: [ProductList],
       providers: [
         { provide: ProductService, useValue: productService },
-        { provide: AuthService, useValue: { user: null } },
         provideRouter([]),
         { provide: ActivatedRoute, useValue: { snapshot: { data: {} } } },
       ],
