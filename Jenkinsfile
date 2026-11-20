@@ -251,13 +251,13 @@ pipeline {
         }
 
         stage('E2E Tests') {
-            when {
-                allOf {
-                    branch 'main'
-                    not { changeRequest() }
-                    expression { env.CHANGED_SERVICES?.trim() || env.E2E_CHANGED == 'true' }
-                }
-            }
+            // when {
+            //     allOf {
+            //         branch 'main'
+            //         not { changeRequest() }
+            //         expression { env.CHANGED_SERVICES?.trim() || env.E2E_CHANGED == 'true' }
+            //     }
+            // }
             options { timeout(time: 20, unit: 'MINUTES') }
             environment {
                 COMPOSE_PROJECT_NAME = "buymesh-e2e-${BUILD_NUMBER}"
@@ -266,6 +266,7 @@ pipeline {
             steps {
                 dir('backend/e2e-tests') {
                     sh(e2eImageExports(env.IMAGE_TAG) + '''
+                        cp .env.example .env
                         COMPOSE="docker compose -p ${COMPOSE_PROJECT_NAME} --env-file e2e-tests/.env -f e2e-tests/docker-compose.e2e.yml"
                         $COMPOSE up -d --wait --wait-timeout 300
 
