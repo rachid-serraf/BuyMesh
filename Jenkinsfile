@@ -266,7 +266,8 @@ pipeline {
             steps {
                 dir('backend/e2e-tests') {
                     sh(e2eImageExports(env.IMAGE_TAG) + '''
-                        COMPOSE="docker compose -p ${COMPOSE_PROJECT_NAME} --env-file e2e-tests/.env -f e2e-tests/docker-compose.e2e.yml"
+                        cp .env.example .env
+                        COMPOSE="docker compose -p ${COMPOSE_PROJECT_NAME} --env-file .env -f docker-compose.e2e.yml"
                         $COMPOSE up -d --wait --wait-timeout 300
 
                         if [ -f /.dockerenv ]; then
@@ -277,7 +278,7 @@ pipeline {
                             BASE_URL=https://localhost:${E2E_GATEWAY_PORT}
                         fi
 
-                        ./e2e-tests/mvnw -f e2e-tests/pom.xml -B test -DbaseUrl=$BASE_URL
+                        ./mvnw -B test -DbaseUrl=$BASE_URL
                     ''')
                 }
             }
