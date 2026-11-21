@@ -451,14 +451,22 @@ pipeline {
                     ? "PR #${env.CHANGE_ID} validation passed — ${env.BUILD_URL}"
                     : "Build #${env.BUILD_NUMBER} deployed successfully — ${env.BUILD_URL}\nDeployed services: ${env.SERVICES_TO_DEPLOY ?: 'none (no changes)'}"
                 catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
-                    slackSend(channel: env.SLACK_CHANNEL, color: 'good', message: "SUCCESS: ${msg}")
+                    emailext(
+                        recipientProviders: [requestor(), developers()],
+                        subject: "SUCCESS: Build #${env.BUILD_NUMBER}",
+                        body: msg
+                    )
                 }
             }
         }
         failure {
             script {
-                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                    slackSend(channel: env.SLACK_CHANNEL, color: 'danger', message: "FAILED: Build #${env.BUILD_NUMBER} failed — ${env.BUILD_URL}\nCheck the console for details.")
+                catchError(buildResult: 'FAILURE', stageResult: 'SUCCESS') {
+                    emailext(
+                        recipientProviders: [requestor(), developers(), culprits()],
+                        subject: "FAILED: Build #${env.BUILD_NUMBER}",
+                        body: "Build failed — ${env.BUILD_URL}\nCheck the console for details."
+                    )
                 }
             }
         }
