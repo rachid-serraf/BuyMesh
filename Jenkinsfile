@@ -452,6 +452,7 @@ pipeline {
                     : "Build #${env.BUILD_NUMBER} deployed successfully — ${env.BUILD_URL}\nDeployed services: ${env.SERVICES_TO_DEPLOY ?: 'none (no changes)'}"
                 catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
                     emailext(
+                        to: env.NOTIFY_EMAIL,
                         recipientProviders: [requestor(), developers()],
                         subject: "SUCCESS: Build #${env.BUILD_NUMBER}",
                         body: msg
@@ -463,6 +464,7 @@ pipeline {
             script {
                 catchError(buildResult: 'FAILURE', stageResult: 'SUCCESS') {
                     emailext(
+                        to: env.NOTIFY_EMAIL,
                         recipientProviders: [requestor(), developers(), culprits()],
                         subject: "FAILED: Build #${env.BUILD_NUMBER}",
                         body: "Build failed — ${env.BUILD_URL}\nCheck the console for details."
