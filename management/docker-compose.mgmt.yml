@@ -5,9 +5,9 @@ services:
       context: .
       dockerfile: Dockerfile.jenkins
     container_name: jenkins
-    privileged: true
-    user: root
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
     ports:
       - "127.0.0.1:8084:8080"   
       - "127.0.0.1:50000:50000" # Jenkins agent communication
