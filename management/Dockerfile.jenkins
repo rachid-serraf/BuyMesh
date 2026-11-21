@@ -31,13 +31,12 @@ RUN apt-get update && apt-get install -y \
     nodejs \
     chromium
 
-# 5. Permission Fix (Important!)
-# This ensures the 'jenkins' user can read the /var/run/docker.sock
-RUN groupadd -f docker && usermod -aG docker jenkins
-
-# 6. Cleanup
+# 5. Cleanup
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
 ENV CHROME_BIN=/usr/bin/chromium
 
-USER jenkins
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+USER root
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
