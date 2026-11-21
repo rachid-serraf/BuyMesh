@@ -15,7 +15,7 @@ export class AuthService {
   public currentUser$ = this.currentUserSubject.asObservable();
 
   private currentUserSignal = signal<User | null>(null);
-  private isAuthSignal = signal<boolean>(this.getToken() !== null);
+  private isAuthSignal = signal<boolean>(false);
 
   constructor(
     private http: HttpClient,
@@ -26,6 +26,7 @@ export class AuthService {
 
   private initializeAuth(): void {
     const token = this.getToken();
+    this.isAuthSignal.set(token !== null);
     const expiresAt = this.getExpiresAt();
 
     if (token && expiresAt) {
