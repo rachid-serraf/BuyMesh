@@ -304,7 +304,7 @@ make docker-down
 ## 4. run jenkins
 to run jenkins server inside the container and have defferent project name (docker use path as key so whe need to till the docker is in separate project)
 ```bash
-docker compose -f docker-compose.mgmt.yml --project-name buymesh-mgmt up -d
+docker compose -f management/docker-compose.mgmt.yml --project-name buymesh-mgmt up -d --build
 ```
 ---
 
