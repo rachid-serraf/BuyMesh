@@ -8,10 +8,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -55,7 +55,63 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    public record UserPrincipal(String id, String email, String role) {
+    public static class UserPrincipal {
+        private final String id;
+        private final String email;
+        private final String role;
 
+        public UserPrincipal(String id, String email, String role) {
+            this.id = id;
+            this.email = email;
+            this.role = role;
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public String getEmail() {
+            return email;
+        }
+
+        public String getRole() {
+            return role;
+        }
+
+        public String id() {
+            return id;
+        }
+
+        public String email() {
+            return email;
+        }
+
+        public String role() {
+            return role;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (!(o instanceof UserPrincipal)) {
+                return false;
+            }
+            UserPrincipal that = (UserPrincipal) o;
+            return java.util.Objects.equals(id, that.id)
+                    && java.util.Objects.equals(email, that.email)
+                    && java.util.Objects.equals(role, that.role);
+        }
+
+        @Override
+        public int hashCode() {
+            return java.util.Objects.hash(id, email, role);
+        }
+
+        @Override
+        public String toString() {
+            return "UserPrincipal{id='" + id + "', email='" + email + "', role='" + role + "'}";
+        }
     }
 }

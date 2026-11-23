@@ -342,6 +342,6 @@ class MediaServiceImplTest {
     private void assertStatus(Runnable action, HttpStatus expected) {
         assertThatThrownBy(action::run)
                 .isInstanceOfSatisfying(ResponseStatusException.class,
-                        exception -> assertThat(exception.getStatusCode()).isEqualTo(expected));
+                        exception -> assertThat(exception.getStatus()).isEqualTo(expected));
     }
 }

@@ -18,13 +18,13 @@ The Media Service provides comprehensive media management capabilities including
 
 ## Technology Stack
 
-- Spring Boot 3.x (WebFlux - Reactive)
+- Spring Boot 2.7.x (WebFlux - Reactive)
 - Spring Security
 - Spring Data MongoDB (Reactive)
 - Spring Kafka
 - MongoDB (GridFS)
 - Kafka
-- Java 21
+- Java 11
 
 ## Architecture
 

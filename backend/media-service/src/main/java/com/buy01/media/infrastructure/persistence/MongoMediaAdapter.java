@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
 
@@ -33,7 +34,7 @@ public class MongoMediaAdapter implements MediaRepositoryPort {
     @Override
     public List<Media> findByStatusAndCreatedAtBefore(FileStatus status, Instant threshold) {
         var medias = mediaRepository.findByStatusAndCreatedAtBefore(status, threshold);
-        return medias.stream().map(MediaDocumentMapper::toDomain).toList();
+        return medias.stream().map(MediaDocumentMapper::toDomain).collect(Collectors.toList());
     }
 
     @Override
@@ -44,13 +45,13 @@ public class MongoMediaAdapter implements MediaRepositoryPort {
     @Override
     public List<Media> findByProductId(String productId) {
         var medias = mediaRepository.findByProductId(productId);
-        return medias.stream().map(MediaDocumentMapper::toDomain).toList();
+        return medias.stream().map(MediaDocumentMapper::toDomain).collect(Collectors.toList());
     }
 
     @Override
     public List<Media> findByProductIdIn(Collection<String> productIds) {
         var medias = mediaRepository.findByProductIdIn(productIds);
-        return medias.stream().map(MediaDocumentMapper::toDomain).toList();
+        return medias.stream().map(MediaDocumentMapper::toDomain).collect(Collectors.toList());
     }
 
 }
