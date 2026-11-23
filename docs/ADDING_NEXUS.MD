@@ -166,78 +166,66 @@ should show the .pom and the .jar. Take a screenshot for the docs.
 - Immutability test. Run the same ./mvnw deploy -DskipTests again. 
 It must fail with 400 Repository does not allow updating assets, which proves releases can't be overwritten. Screenshot the error.
 
-**step 6: Second version.**
-```shell
+**step 6: test Versioning.**
+- 1: Snapshot (development build)
+```bash
+cd backend/user-service
+./mvnw versions:set -DnewVersion=0.0.1-SNAPSHOT -DgenerateBackupPoms=false
+./mvnw deploy -DskipTests
+./mvnw deploy -DskipTests    # second time: allowed, redeploy is enabled
+```
+In Nexus, Browse → buymesh-snapshots: you'll see timestamped files for the same version. Screenshot.
+
+-  2: Release 0.0.1
+
+```bash
+./mvnw versions:set -DnewVersion=0.0.1 -DgenerateBackupPoms=false
+./mvnw deploy -DskipTests
+```
+It lands in buymesh-releases.
+
+3: Prove immutability
+
+```bash
+./mvnw deploy -DskipTests
+```
+Expected: 400 ... does not allow updating assets. Screenshot the error. This is your "releases can't be overwritten" proof.
+
+- 4: Release 0.0.2
+
+```bash
 ./mvnw versions:set -DnewVersion=0.0.2 -DgenerateBackupPoms=false
 ./mvnw deploy -DskipTests
 ```
-Now buymesh-releases has 0.0.1 and 0.0.2. For the rollback demo, show that a consumer can pin either version in its pom.
+Make a visible change first (for example a different line in a controller or the README text), so the two JARs really differ.
 
-**step 7: Copy the setup to the other services**
-For `api-gateway`, `discovery-server`, `media-service`, `order-service` and `product-service`, add:
+### 6 Create the Docker repo (Nexus UI) ###
+Settings → Repositories → Create repository → docker (hosted):
+- Name: buymesh-docker
+- HTTP connector: port 5000
 
-- .mvn/maven.config with -s and ../.mvn/settings.xml on two separate lines
-- the distributionManagement block in the pom
+**Step 1: Enable the Bearer Token realm**
 
+Settings → Security → Realms: move Docker Bearer Token Realm to Active, then Save. Without it, `docker login` fails.
 
+**Step 2: Add privileges to the role**
 
+Edit `buymesh-deployer` and add:
+- `nx-repository-view-docker-buy02-docker-*` to the `Role`
 
-
-
-
-**7. Configure the Pushing Machine (daemon.json)**
-
-By default, Docker expects registries to use TLS/HTTPS. Because you are omitting TLS, the client machine pushing to Nexus will fail with a server gave HTTP response to HTTPS client error unless it's configured as insecure. [1] (https://www.stephane-robert.info/docs/developper/artefacts/nexus/registry-docker/)
-Depending on the operating system of the machine doing the docker push, use one of the methods below: [1] (https://nickjanetakis.com/blog/docker-tip-50-running-an-insecure-docker-registry)
-
-**8. Create or edit the configuration file at /etc/docker/daemon.json:bash (linux)**
+**Step 3: Login, build, push, pull (on the server)**
 ```bash
-sudo nano /etc/docker/daemon.json
-```
-Use code with caution.
-**9. Add your Nexus server's IP address or domain name along with port 5000:json**
-```json
-{
-  "insecure-registries": ["<NEXUS_SERVER_IP>:5000"]
-}
-```
-Use code with caution.
-**10. Restart the Docker daemon to apply the** 
-```bash
-sudo systemctl restart docker
-```
-Use code with caution.
-
-**11. Log In, Tag, and Push**
-```bash
-# 1. Log in to the Nexus repository (Use your Nexus UI admin credentials)
-docker login <NEXUS_SERVER_IP>:5000
-
-# 2. Tag your target image using the Nexus domain prefix
-docker tag my-local-image:latest <NEXUS_SERVER_IP>:5000/my-local-image:latest
-
-# 3. Push to your repository
-docker push <NEXUS_SERVER_IP>:5000/my-local-image:latest
+docker login localhost:5000 -u jenkins-deployer
 ```
 
-Once the configuration is active, you can interact with your insecure Nexus registry: [1]
-
-bash
-# 1. Log in to the Nexus repository (Use your Nexus UI admin credentials)
-docker login <NEXUS_SERVER_IP>:5000
-
-# 2. Tag your target image using the Nexus domain prefix
-docker tag my-local-image:latest <NEXUS_SERVER_IP>:5000/my-local-image:latest
-
-# 3. Push to your repository
-docker push <NEXUS_SERVER_IP>:5000/my-local-image:latest
-Use code with caution.
-If you hit any authentication snags, let me know:
-• Have you already enabled the Docker Bearer Token Realm inside the Nexus Security UI?
-• Are you receiving a 401 Unauthorized error or a connection error?
 
 
-# Troubleshooting (buy-02)
+
+
+
+
+---
+# Troubleshooting 
 
 Problems hit while connecting Maven to Nexus (Docker Compose, Nexus 3.x), with the cause and fix for each.
 
@@ -256,7 +244,7 @@ Problems hit while connecting Maven to Nexus (Docker Compose, Nexus 3.x), with t
 ## 1. `401` when testing the group anonymously
 
 ```bash
-curl -I http://localhost:8091/repository/buy02-group/
+curl -I http://localhost:8091/repository/buymesh-group/
 # HTTP/1.1 401 Unauthorized
 ```
 
@@ -282,11 +270,11 @@ Malformed POM ... Unrecognised tag: 'repository'
 <distributionManagement>
     <repository>
         <id>nexus-releases</id>
-        <url>${env.NEXUS_URL}/repository/buy02-releases/</url>
+        <url>${env.NEXUS_URL}/repository/buymesh-release/</url>
     </repository>
     <snapshotRepository>
         <id>nexus-snapshots</id>
-        <url>${env.NEXUS_URL}/repository/buy02-snapshots/</url>
+        <url>${env.NEXUS_URL}/repository/buymesh-snapshot/</url>
     </snapshotRepository>
 </distributionManagement>
 ```

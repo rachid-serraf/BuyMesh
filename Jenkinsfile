@@ -104,15 +104,36 @@ def e2eImageExports(String tag) {
     }.join('\n') + '\n'
 }
 
+def mavenVersion(String dirPath) {
+    return sh(script: "cd ${dirPath} && ./mvnw -q help:evaluate -Dexpression=project.version -DforceStdout",
+              returnStdout: true).readLines().last().trim()
+}
+
+// local image  <id>-image:<srcTag>  ->  $REGISTRY/buymesh/<id>:<dstTag>
+def pushImage(svc, String srcTag, String dstTag) {
+    sh """
+        docker tag ${imageRepo(svc)}:${srcTag} \$REGISTRY/buymesh/${svc.id}:${dstTag}
+        docker push \$REGISTRY/buymesh/${svc.id}:${dstTag}
+        docker rmi \$REGISTRY/buymesh/${svc.id}:${dstTag} || true
+    """
+}
+
 pipeline {
-    agent { label "${params.AGENT_LABEL ?: 'built-in'}" }
+    agent any
+    tools { jdk 'jdk11' }
 
     environment {
         COMPOSE_PROJECT_NAME = 'buymesh'
-        IMAGE_TAG            = "${BUILD_NUMBER}"
+//         IMAGE_TAG            = "${BUILD_NUMBER}"
+        IMAGE_TAG            = "${env.BRANCH_NAME == 'main' ? env.BUILD_NUMBER : 'pr-' + env.BUILD_NUMBER}"
         HEALTH_RETRIES       = '30'
         HEALTH_INTERVAL      = '10'
-        NOTIFY_EMAIL         = "${params.NOTIFY_EMAIL ?: 'devops@buymesh.local'}"
+        NOTIFY_EMAIL         = "${env.NOTIFY_EMAIL}"
+        NEXUS_CREDS          = credentials('nexus-creds')
+        NEXUS_USER           = "${NEXUS_CREDS_USR}"
+        NEXUS_PASSWORD       = "${NEXUS_CREDS_PSW}"
+        NEXUS_URL            = "${env.NEXUS_URL}"
+        REGISTRY             = "${env.REGISTRY}"
     }
 
     options {
@@ -123,11 +144,7 @@ pipeline {
     }
 
     parameters {
-        string(name: 'AGENT_LABEL', defaultValue: 'built-in',
-               description: 'Jenkins agent label. Set to a remote agent label for distributed builds.')
-        string(name: 'NOTIFY_EMAIL', defaultValue: 'devops@buymesh.local',
-               description: 'Email recipient for build success/failure notifications.')
-        booleanParam(name: 'RUN_E2E', defaultValue: true,
+        booleanParam(name: 'RUN_E2E', defaultValue: false,
                      description: 'Run E2E tests on main-branch builds.')
         booleanParam(name: 'DEPLOY_ENABLED', defaultValue: true,
                      description: 'Deploy changed services to the environment on main-branch builds.')
@@ -185,6 +202,7 @@ pipeline {
                 script {
                     runParallel(changedServices()) { svc ->
                         dir(svc.dir) {
+                            sh './mvnw -v'
                             if (svc.type == 'maven') {
                                 sh './mvnw clean test'
                             } else {
@@ -222,28 +240,35 @@ pipeline {
         }
 
         stage('Build Images') {
-            when { branch 'main' }
+//             when { branch 'main' }
             steps {
                 script {
                     runParallel(changedServices()) { svc ->
                         def repo = imageRepo(svc)
+                        def latestJib = env.BRANCH_NAME == 'main' ? '-Djib.to.tags=latest' : ''
+                        def latestTag = env.BRANCH_NAME == 'main' ? "-t ${repo}:latest" : ''
+
                         if (svc.builder == 'jib') {
                             dir(svc.dir) {
                                 sh """
                                     echo "Building ${svc.id} image with Jib..."
                                     ./mvnw -B compile jib:dockerBuild \\
                                       -Dimage=${repo}:${env.IMAGE_TAG} \\
-                                      -Djib.to.tags=latest \\
+                                      ${latestJib} \\
                                       -Djib.from.platforms=linux/arm64
                                 """
+//                                  -Djib.to.tags=latest \\
+
                             }
                         } else {
                             sh """
                                 echo "Building ${svc.id} image..."
                                 DF=\$(ls ${svc.dir}/[Dd]ockerfile 2>/dev/null | head -n1)
                                 [ -n "\$DF" ] || { echo "No Dockerfile found for ${svc.id}"; exit 1; }
-                                docker build -f "\$DF" -t ${repo}:${env.IMAGE_TAG} -t ${repo}:latest ${svc.dir}
+                                docker build -f "\$DF" -t ${repo}:${env.IMAGE_TAG} ${latestTag} ${svc.dir}
                             """
+//                                 docker build -f "\$DF" -t ${repo}:${env.IMAGE_TAG} -t ${repo}:latest ${svc.dir}
+
                         }
                     }
                 }
@@ -251,7 +276,7 @@ pipeline {
         }
 
         stage('Smoke Test Images') {
-            when { branch 'main' }
+//             when { branch 'main' }
             steps {
                 script {
                     // Only JVM images have `java -version` to check
@@ -261,6 +286,42 @@ pipeline {
                 }
             }
         }
+
+        stage('Publish JARs to Nexus') {
+//             when { allOf { branch 'main'; not { changeRequest() } } }
+            steps {
+                script {
+                    for (svc in changedServices().findAll { it.type == 'maven' }) {
+                        dir(svc.dir) {
+                            sh './mvnw -B deploy -DskipTests'
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Push Images to Nexus') {
+//             when { allOf { branch 'main'; not { changeRequest() } } }
+            steps {
+                script {
+                    sh 'echo "$NEXUS_PASSWORD" | docker login "$REGISTRY" -u "$NEXUS_USER" --password-stdin'
+                    for (svc in changedServices()) {
+                        pushImage(svc, env.IMAGE_TAG, env.IMAGE_TAG)          // build number
+                        if (env.BRANCH_NAME == 'main' && svc.type == 'maven') {
+                            pushImage(svc, env.IMAGE_TAG, mavenVersion(svc.dir))
+                        }
+//                         if (svc.type == 'maven') {
+//                             pushImage(svc, env.IMAGE_TAG, mavenVersion(svc.dir))  // Maven version tag
+//                         }
+                    }
+                }
+            }
+            post { always {
+            sh 'docker logout "$REGISTRY" || true'
+            sh 'docker images --format '{{.Repository}}:{{.Tag}}' | grep ':pr-' | xargs -r docker rmi'
+            } }
+        }
+
 
         stage('E2E Tests') {
             when {
