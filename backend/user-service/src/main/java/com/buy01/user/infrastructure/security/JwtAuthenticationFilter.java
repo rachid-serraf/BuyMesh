@@ -12,10 +12,10 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import com.buy01.user.domain.model.Role;
 import com.buy01.user.domain.port.out.TokenGeneratorPort;
 
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -59,7 +59,40 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    public record UserPrincipal(UUID id, String email, Role role) {
+    public static class UserPrincipal {
 
+        private final UUID id;
+        private final String email;
+        private final Role role;
+
+        public UserPrincipal(UUID id, String email, Role role) {
+            this.id = id;
+            this.email = email;
+            this.role = role;
+        }
+
+        public UUID getId() {
+            return id;
+        }
+
+        public String getEmail() {
+            return email;
+        }
+
+        public Role getRole() {
+            return role;
+        }
+
+        public UUID id() {
+            return id;
+        }
+
+        public String email() {
+            return email;
+        }
+
+        public Role role() {
+            return role;
+        }
     }
 }

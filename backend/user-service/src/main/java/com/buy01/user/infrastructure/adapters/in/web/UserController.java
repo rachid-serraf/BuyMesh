@@ -20,7 +20,7 @@ import com.buy01.user.infrastructure.adapters.in.web.dto.request.UpdateUserReque
 import com.buy01.user.infrastructure.adapters.in.web.dto.response.UserResponse;
 import com.buy01.user.infrastructure.security.JwtAuthenticationFilter.UserPrincipal;
 
-import jakarta.validation.Valid;
+import javax.validation.Valid;
 
 @RestController
 @RequestMapping("/users")

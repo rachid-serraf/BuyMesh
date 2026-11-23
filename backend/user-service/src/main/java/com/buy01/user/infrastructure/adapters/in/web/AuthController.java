@@ -21,7 +21,7 @@ import com.buy01.user.infrastructure.adapters.in.web.dto.request.RegisterRequest
 import com.buy01.user.infrastructure.adapters.in.web.dto.response.LoginResponse;
 import com.buy01.user.infrastructure.adapters.in.web.dto.response.UserResponse;
 
-import jakarta.validation.Valid;
+import javax.validation.Valid;
 
 @RestController
 @RequestMapping("/users/auth")

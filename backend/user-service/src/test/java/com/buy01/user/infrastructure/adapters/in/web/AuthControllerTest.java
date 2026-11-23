@@ -17,7 +17,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -43,13 +43,13 @@ class AuthControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockitoBean
+    @MockBean
     private AuthService authService;
 
-    @MockitoBean
+    @MockBean
     private AvatarService avatarService;
 
-    @MockitoBean
+    @MockBean
     private TokenGeneratorPort tokenGeneratorPort;
 
     @Test
@@ -99,12 +99,10 @@ class AuthControllerTest {
 
         mockMvc.perform(post("/users/auth/login")
                         .contentType("application/json")
-                        .content("""
-                                {
-                                  "email": "rachid@example.com",
-                                  "password": "secret123"
-                                }
-                                """))
+                        .content("{"
+                                + "\"email\": \"rachid@example.com\","
+                                + "\"password\": \"secret123\""
+                                + "}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.token").value("jwt-token"))
                 .andExpect(jsonPath("$.expiresAt").value("2026-03-27T09:00:00Z"));
@@ -114,12 +112,10 @@ class AuthControllerTest {
     void loginReturnsBadRequestWhenPayloadIsInvalid() throws Exception {
         mockMvc.perform(post("/users/auth/login")
                         .contentType("application/json")
-                        .content("""
-                                {
-                                  "email": "bad-email",
-                                  "password": "123"
-                                }
-                                """))
+                        .content("{"
+                                + "\"email\": \"bad-email\","
+                                + "\"password\": \"123\""
+                                + "}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.title").value("Bad Request"))
                 .andExpect(jsonPath("$.detail").value(org.hamcrest.Matchers.containsString("Validation failed")));

@@ -17,12 +17,12 @@ The User Service handles all user-related operations including registration, log
 
 ## Technology Stack
 
-- Spring Boot 3.x
+- Spring Boot 2.7.x
 - Spring Security
 - Spring Data MongoDB
 - JWT (JSON Web Tokens)
 - MongoDB
-- Java 21
+- Java 11
 
 ## Architecture
 

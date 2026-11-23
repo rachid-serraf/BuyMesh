@@ -1,17 +1,49 @@
 package com.buy01.user.infrastructure.adapters.in.web.dto.request;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 
-public record LoginRequest(
-        @NotBlank(message = "Email is required")
-        @Email(message = "Email must be valid")
-        @Size(max = 100, message = "Email must not exceed 100 characters")
-        String email,
-        @NotBlank(message = "Password is required")
-        @Size(min = 6, max = 30, message = "Password must be between 6 and 30 characters")
-        String password
-        ) {
+public class LoginRequest {
 
+    @NotBlank(message = "Email is required")
+    @Email(message = "Email must be valid")
+    @Size(max = 100, message = "Email must not exceed 100 characters")
+    private String email;
+
+    @NotBlank(message = "Password is required")
+    @Size(min = 6, max = 30, message = "Password must be between 6 and 30 characters")
+    private String password;
+
+    public LoginRequest() {
+    }
+
+    public LoginRequest(String email, String password) {
+        this.email = email;
+        this.password = password;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String email() {
+        return email;
+    }
+
+    public String password() {
+        return password;
+    }
 }
