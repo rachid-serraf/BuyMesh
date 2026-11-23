@@ -11,10 +11,16 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.buy01.order.common.Role;
 
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
+import lombok.experimental.Accessors;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -58,7 +64,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    public record UserPrincipal(UUID id, String email, Role role) {
+    @Getter
+    @Accessors(fluent = true)
+    @EqualsAndHashCode
+    @ToString
+    @AllArgsConstructor
+    public static class UserPrincipal {
 
+        public final UUID id;
+        public final String email;
+        public final Role role;
     }
 }

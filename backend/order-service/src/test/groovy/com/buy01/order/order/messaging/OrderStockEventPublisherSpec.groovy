@@ -1,9 +1,8 @@
 package com.buy01.order.order.messaging
 
-import java.util.concurrent.CompletableFuture
-
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.test.util.ReflectionTestUtils
+import org.springframework.util.concurrent.SettableListenableFuture
 
 import com.buy01.order.order.model.entity.Order
 import com.buy01.order.order.model.entity.OrderItem
@@ -52,7 +51,7 @@ class OrderStockEventPublisherSpec extends Specification {
             event.orderId() == "order-1" &&
                     event.action() == StockAction.RESERVE &&
                     event.items() == [new OrderStockItem("product-1", 2)]
-        }) >> CompletableFuture.completedFuture(null)
+        }) >> completedFuture()
     }
 
     def "releaseStock publishes a release event"() {
@@ -67,7 +66,7 @@ class OrderStockEventPublisherSpec extends Specification {
             event.orderId() == "order-1" &&
                     event.action() == StockAction.RELEASE &&
                     event.items() == [new OrderStockItem("product-1", 2)]
-        }) >> CompletableFuture.completedFuture(null)
+        }) >> completedFuture()
     }
 
     def "ignores a null order"() {
@@ -127,7 +126,7 @@ class OrderStockEventPublisherSpec extends Specification {
         then:
         1 * kafkaTemplate.send("order-stock-events", "order-1", { OrderStockEvent event ->
             event.items() == [new OrderStockItem("product-3", 4)]
-        }) >> CompletableFuture.completedFuture(null)
+        }) >> completedFuture()
     }
 
     def "logs a send failure without throwing"() {
@@ -139,7 +138,19 @@ class OrderStockEventPublisherSpec extends Specification {
 
         then:
         1 * kafkaTemplate.send("order-stock-events", "order-1", _) >>
-                CompletableFuture.failedFuture(new IllegalStateException("kafka down"))
+                failedFuture(new IllegalStateException("kafka down"))
         noExceptionThrown()
+    }
+
+    private static SettableListenableFuture<Object> completedFuture() {
+        def future = new SettableListenableFuture<Object>()
+        future.set(null)
+        return future
+    }
+
+    private static SettableListenableFuture<Object> failedFuture(Throwable error) {
+        def future = new SettableListenableFuture<Object>()
+        future.setException(error)
+        return future
     }
 }

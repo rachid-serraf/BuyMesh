@@ -29,7 +29,7 @@ Gateway, where JWT authentication is enforced.
 - Spring Kafka
 - Spring Cloud OpenFeign
 - Netflix Eureka client
-- Java 21
+- Java 11
 
 ## Architecture
 

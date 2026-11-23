@@ -26,7 +26,7 @@ import com.buy01.order.order.dto.UpdateOrderStatusRequest;
 import com.buy01.order.order.service.OrderService;
 import com.buy01.order.security.JwtAuthenticationFilter.UserPrincipal;
 
-import jakarta.validation.Valid;
+import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController

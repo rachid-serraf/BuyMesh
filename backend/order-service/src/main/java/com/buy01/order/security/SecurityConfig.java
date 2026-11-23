@@ -26,10 +26,10 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/actuator/health").permitAll()
-                        .requestMatchers("/orders/test").permitAll()
-                        .requestMatchers("/cart/**").hasRole("CLIENT")
-                        .requestMatchers(HttpMethod.POST, "/orders", "/orders/buy").hasRole("CLIENT")
+                        .antMatchers("/actuator/health").permitAll()
+                        .antMatchers("/orders/test").permitAll()
+                        .antMatchers("/cart/**").hasRole("CLIENT")
+                        .antMatchers(HttpMethod.POST, "/orders", "/orders/buy").hasRole("CLIENT")
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 

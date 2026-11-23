@@ -2,10 +2,22 @@ package com.buy01.order.order.dto;
 
 import java.util.List;
 
-public record ApiError(
-        String code,
-        String message,
-        List<String> details) {
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
+import lombok.experimental.Accessors;
+
+@Getter
+@Accessors(fluent = true)
+@EqualsAndHashCode
+@ToString
+@AllArgsConstructor
+public class ApiError {
+
+    public final String code;
+    public final String message;
+    public final List<String> details;
 
     public static ApiError of(String code, String message) {
         return new ApiError(code, message, List.of());
