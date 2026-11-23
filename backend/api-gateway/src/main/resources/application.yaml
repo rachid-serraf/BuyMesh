@@ -8,51 +8,45 @@ server:
   http2:
     enabled: true
 
+  error:
+    include-message: always
+    include-binding-errors: always
+    include-stacktrace: always
+
 spring:
   application:
     name: gateway
 
-  docker:
-    compose:
-      enabled: false
-
   cloud:
     gateway:
-      server:
-        webflux:
-          routes:
-            - id: user-service
-              uri: lb://USER-SERVICE
-              predicates:
-                - Path=/users/**
-              filters:
-                - Authentication
+      routes:
+        - id: user-service
+          uri: lb://USER-SERVICE
+          predicates:
+            - Path=/users/**
+          filters:
+            - Authentication
 
-            - id: product-service
-              uri: lb://PRODUCT-SERVICE
-              predicates:
-                - Path=/products/**
-              filters:
-                - Authentication
+        - id: product-service
+          uri: lb://PRODUCT-SERVICE
+          predicates:
+            - Path=/products/**
+          filters:
+            - Authentication
 
-            - id: media-service
-              uri: lb://MEDIA-SERVICE
-              predicates:
-                - Path=/media/**
-              filters:
-                - Authentication
+        - id: media-service
+          uri: lb://MEDIA-SERVICE
+          predicates:
+            - Path=/media/**
+          filters:
+            - Authentication
 
-            - id: order-service
-              uri: lb://ORDER-SERVICE
-              predicates:
-                - Path=/orders/**,/cart/**
-              filters:
-                - Authentication
-
-        error:
-          include-message: always
-          include-binding-errors: always
-          include-stacktrace: always
+        - id: order-service
+          uri: lb://ORDER-SERVICE
+          predicates:
+            - Path=/orders/**,/cart/**
+          filters:
+            - Authentication
 
 eureka:
   client:

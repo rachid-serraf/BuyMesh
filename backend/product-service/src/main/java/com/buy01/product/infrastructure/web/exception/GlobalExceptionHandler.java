@@ -2,17 +2,22 @@ package com.buy01.product.infrastructure.web.exception;
 
 import static org.springframework.http.HttpStatus.*;
 
+import java.security.SignatureException;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.springframework.core.codec.DecodingException;
 import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ProblemDetail;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.security.authorization.AuthorizationDeniedException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.bind.support.WebExchangeBindException;
-import org.springframework.web.reactive.resource.NoResourceFoundException;
 import org.springframework.web.server.MethodNotAllowedException;
 import org.springframework.web.server.ServerWebInputException;
 
@@ -23,76 +28,13 @@ import io.jsonwebtoken.ExpiredJwtException;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
-import java.security.SignatureException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-/**
- * Global exception handler for the application using Problem Details (RFC
- * 7807).
- * <p>
- * Centralizes exception handling to return consistent, machine-readable error
- * responses.
- * Uses two main strategies:
- * <ul>
- * <li><b>TEMPLATES map</b>: predefined mappings for common exceptions → fixed
- * HTTP status + title + detail generator</li>
- * <li><b>Specific @ExceptionHandler methods</b>: for more complex/external
- * exceptions (e.g. MediaServiceException)</li>
- * </ul>
- * </p>
- *
- * <h3>How TEMPLATES works</h3>
- * 
- * <pre>
- * TEMPLATES is a static, immutable Map&lt;Class&lt;? extends Throwable&gt;, ProblemTemplate&gt;
- * It contains predefined rules for well-known exceptions.
- *
- * Each entry maps:
- *   - Exception type → ProblemTemplate
- *   - ProblemTemplate contains:
- *       - status      (HttpStatus)
- *       - title       (short human-readable summary)
- *       - detailGenerator (function that extracts meaningful detail from the exception)
- *
- * When an exception arrives in handleGeneralException():
- *   → Look up its exact class in TEMPLATES
- *   → If found → use that template
- *   → If not found → fall back to DEFAULT_TEMPLATE (500 + exception message)
- * </pre>
- *
- * <h3>External service handling (MediaServiceException)</h3>
- * <p>
- * Exceptions coming from external services (like Media Service) are handled in
- * a dedicated method:
- * {@link #handleMediaServiceException(MediaServiceException)}
- *
- * Reasons for separate handling:
- * <ul>
- * <li>Dynamic HTTP status (uses the original statusCode from the external call
- * – 400, 502, 503…)</li>
- * <li>Rich detail: includes original response body from the external
- * service</li>
- * <li>Contextual title: "Media Service Client Error", "Media Service Server
- * Error", etc.</li>
- * <li>Extra properties in response (externalStatus, externalDetail)</li>
- * <li>Different logging level (warn for 4xx, error for 5xx/network
- * failures)</li>
- * </ul>
- *
- * This separation keeps the general template-based logic clean while allowing
- * fine-grained control over external dependency failures.
- * </p>
- */
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
     private static final Map<Class<? extends Throwable>, ProblemTemplate> TEMPLATES = new ProblemTemplate.Registry()
             .add(SignatureException.class, UNAUTHORIZED, "Invalid JWT Signature")
             .add(ExpiredJwtException.class, UNAUTHORIZED, "JWT Token Expired")
-            .add(AuthorizationDeniedException.class, FORBIDDEN, "Access Denied")
-            .add(NoResourceFoundException.class, BAD_REQUEST, "Missing Argument")
+            .add(AccessDeniedException.class, FORBIDDEN, "Access Denied")
             .add(HttpMessageNotReadableException.class, BAD_REQUEST, "JSON Not Valid")
             .add(IllegalArgumentException.class, BAD_REQUEST, "Bad Argument")
             .add(NotFoundException.class, NOT_FOUND, "Validation Error")
@@ -114,7 +56,7 @@ public class GlobalExceptionHandler {
             "Internal Server Error");
 
     @ExceptionHandler(MediaServiceException.class)
-    public Mono<ProblemDetail> handleMediaServiceException(MediaServiceException ex) {
+    public Mono<ResponseEntity<Map<String, Object>>> handleMediaServiceException(MediaServiceException ex) {
         HttpStatus status = (ex.getStatusCode() >= 100 && ex.getStatusCode() < 600)
                 ? HttpStatus.valueOf(ex.getStatusCode())
                 : INTERNAL_SERVER_ERROR;
@@ -133,16 +75,12 @@ public class GlobalExceptionHandler {
             detail += " → " + ex.getResponseBody().trim();
         }
 
-        ProblemDetail pd = ProblemDetail.forStatusAndDetail(status, detail);
-        pd.setTitle(title);
-
         Map<String, Object> properties = new HashMap<>();
         properties.put("externalService", "media");
         properties.put("externalStatus", ex.getStatusCode());
         if (ex.getResponseBody() != null) {
             properties.put("externalDetail", ex.getResponseBody());
         }
-        pd.setProperties(properties);
 
         if (status.is5xxServerError() || ex.getStatusCode() == 0) {
             log.error("Media service failure: status={}, detail={}", ex.getStatusCode(), detail, ex);
@@ -150,28 +88,57 @@ public class GlobalExceptionHandler {
             log.warn("Media service client issue: status={}, detail={}", ex.getStatusCode(), detail);
         }
 
-        return Mono.just(pd);
+        return Mono.just(ResponseEntity.status(status).body(problem(status, title, detail, properties)));
     }
 
     @ExceptionHandler(Exception.class)
-    public Mono<ProblemDetail> handle(Exception ex) {
+    public Mono<ResponseEntity<Map<String, Object>>> handle(Exception ex) {
         ProblemTemplate template = TEMPLATES.get(ex.getClass());
         if (template == null) {
             log.warn("Exception not handled: {}", ex.getClass().getSimpleName(), ex);
             template = DEFAULT_TEMPLATE;
         }
-        ProblemDetail pd = ProblemDetail.forStatusAndDetail(
-                template.status(),
-                template.detailGenerator().apply(ex));
-        pd.setTitle(template.title());
-        return Mono.just(pd);
+        return Mono.just(ResponseEntity.status(template.status())
+                .body(problem(template.status(), template.title(),
+                        template.detailGenerator().apply(ex), null)));
+    }
+
+    private static Map<String, Object> problem(HttpStatus status, String title, String detail,
+            Map<String, Object> extra) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("type", "about:blank");
+        body.put("title", title);
+        body.put("status", status.value());
+        body.put("detail", detail);
+        if (extra != null) {
+            body.putAll(extra);
+        }
+        return body;
     }
 }
 
-record ProblemTemplate(
-        HttpStatus status,
-        DetailGenerator detailGenerator,
-        String title) {
+class ProblemTemplate {
+    private final HttpStatus status;
+    private final DetailGenerator detailGenerator;
+    private final String title;
+
+    ProblemTemplate(HttpStatus status, DetailGenerator detailGenerator, String title) {
+        this.status = status;
+        this.detailGenerator = detailGenerator;
+        this.title = title;
+    }
+
+    HttpStatus status() {
+        return status;
+    }
+
+    DetailGenerator detailGenerator() {
+        return detailGenerator;
+    }
+
+    String title() {
+        return title;
+    }
 
     public static class Registry {
         private final Map<Class<? extends Throwable>, ProblemTemplate> map = new HashMap<>();

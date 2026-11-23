@@ -148,7 +148,7 @@ public class ProductServiceImpl implements ProductUseCase {
                         return Flux.empty();
                     }
 
-                    List<String> ids = products.stream().map(Product::getId).toList();
+                    List<String> ids = products.stream().map(Product::getId).collect(Collectors.toList());
                     var images = imageService.getImagesBatch(ids);
 
                     return images.map(urlMap -> products.stream()
@@ -173,7 +173,7 @@ public class ProductServiceImpl implements ProductUseCase {
                         return Flux.empty();
                     }
 
-                    List<String> ids = products.stream().map(Product::getId).toList();
+                    List<String> ids = products.stream().map(Product::getId).collect(Collectors.toList());
                     Mono<Map<String, String>> images = imageService.getImagesBatch(ids);
 
                     return images.map(urlMap -> products.stream()
@@ -229,7 +229,7 @@ public class ProductServiceImpl implements ProductUseCase {
 
         return productRepository.search(r, pageable)
                 .flatMap(page -> {
-                    List<String> ids = page.getContent().stream().map(ProductList::getId).toList();
+                    List<String> ids = page.getContent().stream().map(ProductList::getId).collect(Collectors.toList());
 
                     Mono<Map<String, String>> images = ids.isEmpty()
                             ? Mono.just(Map.<String, String>of())

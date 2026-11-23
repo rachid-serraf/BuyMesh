@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.bson.Document;
 import org.bson.types.Decimal128;
@@ -304,7 +305,7 @@ class MongoProductAdapterTest {
     private List<String> stages(Aggregation aggregation) {
         return aggregation.toPipeline(Aggregation.DEFAULT_CONTEXT).stream()
                 .map(document -> document.keySet().iterator().next())
-                .toList();
+                .collect(Collectors.toList());
     }
 
     private Document stage(Aggregation aggregation, String name) {

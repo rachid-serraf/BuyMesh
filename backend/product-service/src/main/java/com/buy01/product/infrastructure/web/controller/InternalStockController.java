@@ -1,6 +1,7 @@
 package com.buy01.product.infrastructure.web.controller;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,7 +14,7 @@ import com.buy01.product.domain.ports.inbound.ProductUseCase;
 import com.buy01.product.infrastructure.web.dto.StockAdjustRequest;
 import com.buy01.product.infrastructure.web.dto.StockItemRequest;
 
-import jakarta.validation.Valid;
+import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 
@@ -39,7 +40,7 @@ public class InternalStockController {
     private List<StockItem> toStockItems(StockAdjustRequest request) {
         return request.items().stream()
                 .map(this::toStockItem)
-                .toList();
+                .collect(Collectors.toList());
     }
 
     private StockItem toStockItem(StockItemRequest item) {

@@ -15,7 +15,7 @@ import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 import com.buy01.product.domain.model.Category;
@@ -48,10 +48,10 @@ class ProductControllerTest {
         @Autowired
         private WebTestClient webTestClient;
 
-        @MockitoBean
+        @MockBean
         private ProductUseCase productUseCase;
 
-        @MockitoBean
+        @MockBean
         private JwtUtil jwtUtil;
 
         @Test
@@ -78,16 +78,14 @@ class ProductControllerTest {
                                 .uri("/products")
                                 .header(HttpHeaders.AUTHORIZATION, bearer(SELLER_TOKEN))
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .bodyValue("""
-                                                {
-                                                  "name": "Gaming Mouse",
-                                                  "description": "High precision wireless gaming mouse",
-                                                  "price": 199,
-                                                  "quantity": 5,
-                                                  "imagesIds": ["img-1", "img-2"],
-                                                  "category": "ELECTRONICS"
-                                                }
-                                                """)
+                                 .bodyValue("{"
+                                                 + "\"name\": \"Gaming Mouse\","
+                                                 + "\"description\": \"High precision wireless gaming mouse\","
+                                                 + "\"price\": 199,"
+                                                 + "\"quantity\": 5,"
+                                                 + "\"imagesIds\": [\"img-1\", \"img-2\"],"
+                                                 + "\"category\": \"ELECTRONICS\""
+                                                 + "}")
                                 .exchange()
                                 .expectStatus().isCreated()
                                 .expectBody()
@@ -112,15 +110,13 @@ class ProductControllerTest {
                                 .uri("/products")
                                 .header(HttpHeaders.AUTHORIZATION, bearer(SELLER_TOKEN))
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .bodyValue("""
-                                                {
-                                                  "name": "",
-                                                  "description": "short",
-                                                  "price": 0,
-                                                  "quantity": -1,
-                                                  "imagesIds": []
-                                                }
-                                                """)
+                                 .bodyValue("{"
+                                                 + "\"name\": \"\","
+                                                 + "\"description\": \"short\","
+                                                 + "\"price\": 0,"
+                                                 + "\"quantity\": -1,"
+                                                 + "\"imagesIds\": []"
+                                                 + "}")
                                 .exchange()
                                 .expectStatus().isBadRequest()
                                 .expectBody()
@@ -161,16 +157,14 @@ class ProductControllerTest {
                                 .uri("/products/prod-9")
                                 .header(HttpHeaders.AUTHORIZATION, bearer(SELLER_TOKEN))
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .bodyValue("""
-                                                {
-                                                  "name": "Updated Keyboard",
-                                                  "description": "Mechanical keyboard with tactile switches",
-                                                  "price": 149,
-                                                  "quantity": 7,
-                                                  "imagesIds": ["img-9"],
-                                                  "category": "CLOTHING"
-                                                }
-                                                """)
+                                 .bodyValue("{"
+                                                 + "\"name\": \"Updated Keyboard\","
+                                                 + "\"description\": \"Mechanical keyboard with tactile switches\","
+                                                 + "\"price\": 149,"
+                                                 + "\"quantity\": 7,"
+                                                 + "\"imagesIds\": [\"img-9\"],"
+                                                 + "\"category\": \"CLOTHING\""
+                                                 + "}")
                                 .exchange()
                                 .expectStatus().isOk()
                                 .expectBody()
@@ -342,15 +336,13 @@ class ProductControllerTest {
                                 .uri("/products")
                                 .header(HttpHeaders.AUTHORIZATION, bearer(USER_TOKEN))
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .bodyValue("""
-                                                {
-                                                  "name": "Gaming Mouse",
-                                                  "description": "High precision wireless gaming mouse",
-                                                  "price": 199,
-                                                  "quantity": 5,
-                                                  "imagesIds": ["img-1"]
-                                                }
-                                                """)
+                                 .bodyValue("{"
+                                                 + "\"name\": \"Gaming Mouse\","
+                                                 + "\"description\": \"High precision wireless gaming mouse\","
+                                                 + "\"price\": 199,"
+                                                 + "\"quantity\": 5,"
+                                                 + "\"imagesIds\": [\"img-1\"]"
+                                                 + "}")
                                 .exchange()
                                 .expectStatus().isForbidden();
         }

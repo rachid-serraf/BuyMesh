@@ -6,19 +6,19 @@ import static org.mockito.Mockito.when;
 
 import java.security.SignatureException;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.core.MethodParameter;
 import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ProblemDetail;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.security.authorization.AuthorizationDeniedException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.support.WebExchangeBindException;
-import org.springframework.web.reactive.resource.NoResourceFoundException;
 import org.springframework.web.server.MethodNotAllowedException;
 import org.springframework.web.server.ServerWebInputException;
 
@@ -41,13 +41,8 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
-    void handlesAuthorizationDeniedException() {
-        assertProblem(new AuthorizationDeniedException("denied"), HttpStatus.FORBIDDEN, "Access Denied");
-    }
-
-    @Test
-    void handlesNoResourceFoundException() {
-        assertProblem(new NoResourceFoundException("/missing"), HttpStatus.BAD_REQUEST, "Missing Argument");
+    void handlesAccessDeniedException() {
+        assertProblem(new AccessDeniedException("denied"), HttpStatus.FORBIDDEN, "Access Denied");
     }
 
     @Test
@@ -89,12 +84,13 @@ class GlobalExceptionHandlerTest {
         when(bindingResult.getFieldErrors()).thenReturn(List.of(fieldError));
         WebExchangeBindException exception = new WebExchangeBindException(mock(MethodParameter.class), bindingResult);
 
-        ProblemDetail problem = handler.handle(exception).block();
+        ResponseEntity<Map<String, Object>> response = handler.handle(exception).block();
 
-        assertThat(problem).isNotNull();
-        assertThat(problem.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
-        assertThat(problem.getTitle()).isEqualTo("Validation Failed");
-        assertThat(problem.getDetail()).isEqualTo("name: must not be blank");
+        assertThat(response).isNotNull();
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getBody()).containsEntry("status", HttpStatus.BAD_REQUEST.value());
+        assertThat(response.getBody()).containsEntry("title", "Validation Failed");
+        assertThat(response.getBody()).containsEntry("detail", "name: must not be blank");
     }
 
     @Test
@@ -105,32 +101,34 @@ class GlobalExceptionHandlerTest {
         when(bindingResult.getFieldErrors()).thenReturn(List.of(fieldError));
         WebExchangeBindException exception = new WebExchangeBindException(mock(MethodParameter.class), bindingResult);
 
-        ProblemDetail problem = handler.handle(exception).block();
+        ResponseEntity<Map<String, Object>> response = handler.handle(exception).block();
 
-        assertThat(problem).isNotNull();
-        assertThat(problem.getDetail()).startsWith("price: ").contains("Field error in object");
+        assertThat(response).isNotNull();
+        assertThat((String) response.getBody().get("detail")).startsWith("price: ").contains("Field error in object");
     }
 
     @Test
     void handlesUnknownExceptionWithDefaultTemplate() {
-        ProblemDetail problem = handler.handle(new RuntimeException("unexpected")).block();
+        ResponseEntity<Map<String, Object>> response = handler.handle(new RuntimeException("unexpected")).block();
 
-        assertThat(problem).isNotNull();
-        assertThat(problem.getStatus()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR.value());
-        assertThat(problem.getTitle()).isEqualTo("Internal Server Error");
-        assertThat(problem.getDetail()).isEqualTo("unexpected");
+        assertThat(response).isNotNull();
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+        assertThat(response.getBody()).containsEntry("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
+        assertThat(response.getBody()).containsEntry("title", "Internal Server Error");
+        assertThat(response.getBody()).containsEntry("detail", "unexpected");
     }
 
     @Test
     void handlesMediaServiceClientError() {
-        ProblemDetail problem = handler.handleMediaServiceException(
+        ResponseEntity<Map<String, Object>> response = handler.handleMediaServiceException(
                 new MediaServiceException(404, "not found", "body")).block();
 
-        assertThat(problem).isNotNull();
-        assertThat(problem.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
-        assertThat(problem.getTitle()).isEqualTo("Media Service Client Error");
-        assertThat(problem.getDetail()).isEqualTo("not found → body");
-        assertThat(problem.getProperties())
+        assertThat(response).isNotNull();
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(response.getBody()).containsEntry("status", HttpStatus.NOT_FOUND.value());
+        assertThat(response.getBody()).containsEntry("title", "Media Service Client Error");
+        assertThat(response.getBody()).containsEntry("detail", "not found → body");
+        assertThat(response.getBody())
                 .containsEntry("externalService", "media")
                 .containsEntry("externalStatus", 404)
                 .containsEntry("externalDetail", "body");
@@ -138,60 +136,62 @@ class GlobalExceptionHandlerTest {
 
     @Test
     void handlesMediaServiceServerError() {
-        ProblemDetail problem = handler.handleMediaServiceException(
+        ResponseEntity<Map<String, Object>> response = handler.handleMediaServiceException(
                 new MediaServiceException(503, "unavailable", "busy")).block();
 
-        assertThat(problem).isNotNull();
-        assertThat(problem.getStatus()).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE.value());
-        assertThat(problem.getTitle()).isEqualTo("Media Service Server Error");
+        assertThat(response).isNotNull();
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
+        assertThat(response.getBody()).containsEntry("title", "Media Service Server Error");
     }
 
     @Test
     void handlesMediaServiceNonErrorStatus() {
-        ProblemDetail problem = handler.handleMediaServiceException(
+        ResponseEntity<Map<String, Object>> response = handler.handleMediaServiceException(
                 new MediaServiceException(200, "ok", null)).block();
 
-        assertThat(problem).isNotNull();
-        assertThat(problem.getStatus()).isEqualTo(HttpStatus.OK.value());
-        assertThat(problem.getTitle()).isEqualTo("Media Service Unavailable");
-        assertThat(problem.getDetail()).isEqualTo("ok");
-        assertThat(problem.getProperties()).doesNotContainKey("externalDetail");
+        assertThat(response).isNotNull();
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).containsEntry("status", HttpStatus.OK.value());
+        assertThat(response.getBody()).containsEntry("title", "Media Service Unavailable");
+        assertThat(response.getBody()).containsEntry("detail", "ok");
+        assertThat(response.getBody()).doesNotContainKey("externalDetail");
     }
 
     @Test
     void handlesMediaServiceInvalidStatusAsInternalServerError() {
-        ProblemDetail problem = handler.handleMediaServiceException(
+        ResponseEntity<Map<String, Object>> response = handler.handleMediaServiceException(
                 new MediaServiceException(999, "invalid", "body")).block();
 
-        assertThat(problem).isNotNull();
-        assertThat(problem.getStatus()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR.value());
-        assertThat(problem.getTitle()).isEqualTo("Media Service Server Error");
+        assertThat(response).isNotNull();
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+        assertThat(response.getBody()).containsEntry("title", "Media Service Server Error");
     }
 
     @Test
     void handlesMediaServiceZeroStatusAsInternalServerError() {
-        ProblemDetail problem = handler.handleMediaServiceException(
+        ResponseEntity<Map<String, Object>> response = handler.handleMediaServiceException(
                 new MediaServiceException(0, "network", null)).block();
 
-        assertThat(problem).isNotNull();
-        assertThat(problem.getStatus()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR.value());
-        assertThat(problem.getTitle()).isEqualTo("Media Service Server Error");
+        assertThat(response).isNotNull();
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+        assertThat(response.getBody()).containsEntry("title", "Media Service Server Error");
     }
 
     @Test
     void handlesMediaServiceBlankResponseBody() {
-        ProblemDetail problem = handler.handleMediaServiceException(
+        ResponseEntity<Map<String, Object>> response = handler.handleMediaServiceException(
                 new MediaServiceException(400, "bad", "  ")).block();
 
-        assertThat(problem).isNotNull();
-        assertThat(problem.getDetail()).isEqualTo("bad");
+        assertThat(response).isNotNull();
+        assertThat(response.getBody()).containsEntry("detail", "bad");
     }
 
     private void assertProblem(Exception exception, HttpStatus status, String title) {
-        ProblemDetail problem = handler.handle(exception).block();
+        ResponseEntity<Map<String, Object>> response = handler.handle(exception).block();
 
-        assertThat(problem).isNotNull();
-        assertThat(problem.getStatus()).isEqualTo(status.value());
-        assertThat(problem.getTitle()).isEqualTo(title);
+        assertThat(response).isNotNull();
+        assertThat(response.getStatusCode()).isEqualTo(status);
+        assertThat(response.getBody()).containsEntry("status", status.value());
+        assertThat(response.getBody()).containsEntry("title", title);
     }
 }
