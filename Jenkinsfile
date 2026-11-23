@@ -317,8 +317,10 @@ pipeline {
                 }
             }
             post { always {
-            sh 'docker logout "$REGISTRY" || true'
-            sh 'docker images --format '{{.Repository}}:{{.Tag}}' | grep ':pr-' | xargs -r docker rmi'
+            sh """
+                docker logout "$REGISTRY" || true
+                docker images --format '{{.Repository}}:{{.Tag}}' | grep ':pr-' | xargs -r docker rmi
+            """
             } }
         }
 
