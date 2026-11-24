@@ -1,5 +1,5 @@
 # Stage 1: Build the application
-FROM maven:3.8-eclipse-temurin-11-alpine AS build
+FROM maven:3.8-eclipse-temurin-11 AS build
 WORKDIR /app
 
 # Copy the pom.xml and source code
