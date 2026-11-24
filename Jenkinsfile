@@ -202,8 +202,8 @@ pipeline {
                 script {
                     runParallel(changedServices()) { svc ->
                         dir(svc.dir) {
-                            sh './mvnw -v'
                             if (svc.type == 'maven') {
+                                sh 'echo "JAVA_HOME=$JAVA_HOME"; which java; java -version 2>&1 | head -1'
                                 sh './mvnw clean test'
                             } else {
                                 sh 'npm ci'
