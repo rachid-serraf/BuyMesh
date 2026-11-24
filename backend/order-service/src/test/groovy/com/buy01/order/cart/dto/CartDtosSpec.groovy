@@ -155,4 +155,67 @@ class CartDtosSpec extends Specification {
         !first.equals("other")
         first.toString().contains("4")
     }
+
+    def "CartItemIssue covers null and populated equality and hash branches"() {
+        given:
+        def empty = new CartItemIssue(null, null, null, null)
+        def populated = new CartItemIssue("product-1", "Phone",
+                CartIssueType.INSUFFICIENT_STOCK, "Only 1 left")
+        def populatedCopy = new CartItemIssue("product-1", "Phone",
+                CartIssueType.INSUFFICIENT_STOCK, "Only 1 left")
+
+        expect:
+        empty == new CartItemIssue(null, null, null, null)
+        empty.hashCode() == new CartItemIssue(null, null, null, null).hashCode()
+        empty != populated
+        populated != empty
+        populated == populatedCopy
+        populated.hashCode() == populatedCopy.hashCode()
+    }
+
+    def "CheckoutResponse covers null and populated equality and hash branches"() {
+        given:
+        def empty = new CheckoutResponse(false, null, null, null)
+        def order = orderResponse()
+        def populated = new CheckoutResponse(false, [], cart(), [order])
+        def populatedCopy = new CheckoutResponse(false, [], populated.cart(), [order])
+
+        expect:
+        empty == new CheckoutResponse(false, null, null, null)
+        empty.hashCode() == new CheckoutResponse(false, null, null, null).hashCode()
+        empty != populated
+        populated != empty
+        populated == populatedCopy
+        populated.hashCode() == populatedCopy.hashCode()
+    }
+
+    def "CartItemDTO.AddRequest covers null and populated equality and hash branches"() {
+        given:
+        def empty = new CartItemDTO.AddRequest(null, 0)
+        def populated = new CartItemDTO.AddRequest("product-1", 2)
+        def populatedCopy = new CartItemDTO.AddRequest("product-1", 2)
+
+        expect:
+        empty == new CartItemDTO.AddRequest(null, 0)
+        empty.hashCode() == new CartItemDTO.AddRequest(null, 0).hashCode()
+        empty != populated
+        populated != empty
+        populated == populatedCopy
+        populated.hashCode() == populatedCopy.hashCode()
+    }
+
+    def "CartItemDTO.UpdateRequest covers equality and hash branches"() {
+        given:
+        def empty = new CartItemDTO.UpdateRequest(0)
+        def populated = new CartItemDTO.UpdateRequest(2)
+        def populatedCopy = new CartItemDTO.UpdateRequest(2)
+
+        expect:
+        empty == new CartItemDTO.UpdateRequest(0)
+        empty.hashCode() == new CartItemDTO.UpdateRequest(0).hashCode()
+        empty != populated
+        populated != empty
+        populated == populatedCopy
+        populated.hashCode() == populatedCopy.hashCode()
+    }
 }

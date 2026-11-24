@@ -104,4 +104,49 @@ class OrderRequestDtosSpec extends Specification {
         legacy.category() == null
         full.category() == "ELECTRONICS"
     }
+
+    def "UpdateOrderStatusRequest covers null and populated equality and hash branches"() {
+        given:
+        def empty = new UpdateOrderStatusRequest(null)
+        def populated = new UpdateOrderStatusRequest(Status.CONFIRMED)
+        def populatedCopy = new UpdateOrderStatusRequest(Status.CONFIRMED)
+
+        expect:
+        empty == new UpdateOrderStatusRequest(null)
+        empty.hashCode() == new UpdateOrderStatusRequest(null).hashCode()
+        empty != populated
+        populated != empty
+        populated == populatedCopy
+        populated.hashCode() == populatedCopy.hashCode()
+    }
+
+    def "CreateOrderRequest covers null and populated equality and hash branches"() {
+        given:
+        def empty = new CreateOrderRequest(null, null, null, null)
+        def populated = new CreateOrderRequest("checkout-1", "seller-1", [item()], address())
+        def populatedCopy = new CreateOrderRequest("checkout-1", "seller-1", [item()], address())
+
+        expect:
+        empty == new CreateOrderRequest(null, null, null, null)
+        empty.hashCode() == new CreateOrderRequest(null, null, null, null).hashCode()
+        empty != populated
+        populated != empty
+        populated == populatedCopy
+        populated.hashCode() == populatedCopy.hashCode()
+    }
+
+    def "OrderItemRequest covers null and populated equality and hash branches"() {
+        given:
+        def empty = new OrderItemRequest(null, null, null, null, null, 0, null)
+        def populated = item()
+        def populatedCopy = item()
+
+        expect:
+        empty == new OrderItemRequest(null, null, null, null, null, 0, null)
+        empty.hashCode() == new OrderItemRequest(null, null, null, null, null, 0, null).hashCode()
+        empty != populated
+        populated != empty
+        populated == populatedCopy
+        populated.hashCode() == populatedCopy.hashCode()
+    }
 }

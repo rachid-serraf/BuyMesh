@@ -28,4 +28,19 @@ class StockItemRequestSpec extends Specification {
         first.toString().contains("product-1")
         first.toString().contains("5")
     }
+
+    def "covers null and populated equality and hash branches"() {
+        given:
+        def empty = new StockItemRequest(null, 0)
+        def populated = new StockItemRequest("product-1", 5)
+        def populatedCopy = new StockItemRequest("product-1", 5)
+
+        expect:
+        empty == new StockItemRequest(null, 0)
+        empty.hashCode() == new StockItemRequest(null, 0).hashCode()
+        empty != populated
+        populated != empty
+        populated == populatedCopy
+        populated.hashCode() == populatedCopy.hashCode()
+    }
 }

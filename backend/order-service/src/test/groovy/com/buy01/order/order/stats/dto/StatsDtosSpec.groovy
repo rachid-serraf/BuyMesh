@@ -147,4 +147,53 @@ class StatsDtosSpec extends Specification {
         !first.equals("other")
         first.toString().contains("ELECTRONICS")
     }
+
+    def "BestSellingProductResponse covers null and populated equality and hash branches"() {
+        given:
+        def empty = new BestSellingProductResponse()
+        def populated = new BestSellingProductResponse(
+                "product-1", "Phone", "image-1", 6L, new BigDecimal("99.90"))
+        def populatedCopy = new BestSellingProductResponse(
+                "product-1", "Phone", "image-1", 6L, new BigDecimal("99.90"))
+
+        expect:
+        empty == new BestSellingProductResponse()
+        empty.hashCode() == new BestSellingProductResponse().hashCode()
+        empty != populated
+        populated != empty
+        populated == populatedCopy
+        populated.hashCode() == populatedCopy.hashCode()
+    }
+
+    def "ProductStatsResponse covers null and populated equality and hash branches"() {
+        given:
+        def empty = new ProductStatsResponse()
+        def populated = new ProductStatsResponse(
+                "product-1", "Phone", "image-1", 2L, new BigDecimal("19.98"))
+        def populatedCopy = new ProductStatsResponse(
+                "product-1", "Phone", "image-1", 2L, new BigDecimal("19.98"))
+
+        expect:
+        empty == new ProductStatsResponse()
+        empty.hashCode() == new ProductStatsResponse().hashCode()
+        empty != populated
+        populated != empty
+        populated == populatedCopy
+        populated.hashCode() == populatedCopy.hashCode()
+    }
+
+    def "CategoryStatsResponse covers null and populated equality and hash branches"() {
+        given:
+        def empty = new CategoryStatsResponse()
+        def populated = new CategoryStatsResponse("ELECTRONICS", 2L, new BigDecimal("19.98"))
+        def populatedCopy = new CategoryStatsResponse("ELECTRONICS", 2L, new BigDecimal("19.98"))
+
+        expect:
+        empty == new CategoryStatsResponse()
+        empty.hashCode() == new CategoryStatsResponse().hashCode()
+        empty != populated
+        populated != empty
+        populated == populatedCopy
+        populated.hashCode() == populatedCopy.hashCode()
+    }
 }

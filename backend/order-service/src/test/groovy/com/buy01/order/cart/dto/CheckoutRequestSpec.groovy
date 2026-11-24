@@ -52,4 +52,23 @@ class CheckoutRequestSpec extends Specification {
         !first.equals("other")
         first.toString().contains("address")
     }
+
+    def "covers null and populated equality and hash branches"() {
+        given:
+        def empty = new CheckoutRequest(null)
+        def populated = new CheckoutRequest(new DeliveryAddress(
+                "Ada Lovelace", "+1 555 0100", "1 Main St", "Apt 2",
+                "Springfield", "IL", "62701", "USA"))
+        def populatedCopy = new CheckoutRequest(new DeliveryAddress(
+                "Ada Lovelace", "+1 555 0100", "1 Main St", "Apt 2",
+                "Springfield", "IL", "62701", "USA"))
+
+        expect:
+        empty == new CheckoutRequest(null)
+        empty.hashCode() == new CheckoutRequest(null).hashCode()
+        empty != populated
+        populated != empty
+        populated == populatedCopy
+        populated.hashCode() == populatedCopy.hashCode()
+    }
 }

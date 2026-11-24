@@ -132,4 +132,21 @@ class JwtAuthenticationFilterSpec extends Specification {
         !first.equals("other")
         first.toString().contains("buyer@example.com")
     }
+
+    def "UserPrincipal covers null and populated equality and hash branches"() {
+        given:
+        def empty = new JwtAuthenticationFilter.UserPrincipal(null, null, null)
+        def populated = new JwtAuthenticationFilter.UserPrincipal(
+                UUID.randomUUID(), "buyer@example.com", Role.CLIENT)
+        def populatedCopy = new JwtAuthenticationFilter.UserPrincipal(
+                populated.id(), "buyer@example.com", Role.CLIENT)
+
+        expect:
+        empty == new JwtAuthenticationFilter.UserPrincipal(null, null, null)
+        empty.hashCode() == new JwtAuthenticationFilter.UserPrincipal(null, null, null).hashCode()
+        empty != populated
+        populated != empty
+        populated == populatedCopy
+        populated.hashCode() == populatedCopy.hashCode()
+    }
 }
