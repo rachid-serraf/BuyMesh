@@ -132,8 +132,8 @@ pipeline {
         NEXUS_CREDS          = credentials('nexus-creds')
         NEXUS_USER           = "${NEXUS_CREDS_USR}"
         NEXUS_PASSWORD       = "${NEXUS_CREDS_PSW}"
-        NEXUS_URL            = "${env.NEXUS_URL}"
-        REGISTRY             = "${env.REGISTRY}"
+        NEXUS_URL            = 'http://nexus:8081'
+        REGISTRY             = 'localhost:5000'
     }
 
     options {
