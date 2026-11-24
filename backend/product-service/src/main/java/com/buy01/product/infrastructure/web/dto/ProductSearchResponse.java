@@ -1,10 +1,10 @@
 package com.buy01.product.infrastructure.web.dto;
 
-import com.buy01.product.domain.model.Category;
-import com.buy01.product.domain.model.Product;
-
 import java.math.BigDecimal;
 import java.time.Instant;
+
+import com.buy01.product.domain.model.Category;
+import com.buy01.product.domain.model.Product;
 
 public class ProductSearchResponse {
 
@@ -71,42 +71,6 @@ public class ProductSearchResponse {
     }
 
     public Instant getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public String id() {
-        return id;
-    }
-
-    public String name() {
-        return name;
-    }
-
-    public String description() {
-        return description;
-    }
-
-    public BigDecimal price() {
-        return price;
-    }
-
-    public int quantity() {
-        return quantity;
-    }
-
-    public Category category() {
-        return category;
-    }
-
-    public String userId() {
-        return userId;
-    }
-
-    public Instant createdAt() {
-        return createdAt;
-    }
-
-    public Instant updatedAt() {
         return updatedAt;
     }
 }

@@ -38,12 +38,12 @@ public class InternalStockController {
     }
 
     private List<StockItem> toStockItems(StockAdjustRequest request) {
-        return request.items().stream()
+        return request.getItems().stream()
                 .map(this::toStockItem)
                 .collect(Collectors.toList());
     }
 
     private StockItem toStockItem(StockItemRequest item) {
-        return new StockItem(item.productId().trim(), item.quantity());
+        return new StockItem(item.getProductId().trim(), item.getQuantity());
     }
 }

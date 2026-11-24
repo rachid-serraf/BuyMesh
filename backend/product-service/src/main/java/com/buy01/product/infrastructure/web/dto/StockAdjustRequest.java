@@ -5,28 +5,18 @@ import java.util.List;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class StockAdjustRequest {
 
     @NotEmpty(message = "At least one stock item is required")
     @Valid
     private List<StockItemRequest> items;
-
-    public StockAdjustRequest() {
-    }
-
-    public StockAdjustRequest(List<StockItemRequest> items) {
-        this.items = items;
-    }
-
-    public List<StockItemRequest> getItems() {
-        return items;
-    }
-
-    public void setItems(List<StockItemRequest> items) {
-        this.items = items;
-    }
-
-    public List<StockItemRequest> items() {
-        return items;
-    }
 }
