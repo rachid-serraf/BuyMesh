@@ -42,7 +42,7 @@ public class UserController {
     @GetMapping("/me")
     public ResponseEntity<UserResponse> getCurrentUser(Authentication authentication) {
         UserPrincipal currUser = (UserPrincipal) authentication.getPrincipal();
-        User user = userService.findById(currUser.id());
+        User user = userService.findById(currUser.getId());
         return ResponseEntity.ok(UserResponse.from(user));
     }
 
@@ -65,18 +65,18 @@ public class UserController {
         UserPrincipal currUser = (UserPrincipal) authentication.getPrincipal();
 
         String avatarUrl = null;
-        if (request.avatar() != null && !request.avatar().isEmpty()) {
-            avatarUrl = avatarService.saveAvatar(request.avatar());
+        if (request.getAvatar() != null && !request.getAvatar().isEmpty()) {
+            avatarUrl = avatarService.saveAvatar(request.getAvatar());
         }
 
-        User updatedUser = userService.updateUser(currUser.id(), request.toCommand(avatarUrl));
+        User updatedUser = userService.updateUser(currUser.getId(), request.toCommand(avatarUrl));
         return ResponseEntity.ok(UserResponse.from(updatedUser));
     }
 
     @DeleteMapping("/me")
     public void deleteUser(Authentication authentication) {
         UserPrincipal currUser = (UserPrincipal) authentication.getPrincipal();
-        User user = userService.findById(currUser.id());
+        User user = userService.findById(currUser.getId());
         userService.deleteUser(user.getId());
     }
 }

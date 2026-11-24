@@ -33,22 +33,22 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public User register(CreateUserCommand command) {
-        if (userRepository.existsByEmail(command.email())) {
-            throw new UserAlreadyExistsException("User with email " + command.email() + " already exists");
+        if (userRepository.existsByEmail(command.getEmail())) {
+            throw new UserAlreadyExistsException("User with email " + command.getEmail() + " already exists");
         }
 
-        String encodedPassword = passwordEncoder.encode(command.password());
+        String encodedPassword = passwordEncoder.encode(command.getPassword());
 
         User user = User.create(
-                command.name(),
-                command.email(),
+                command.getName(),
+                command.getEmail(),
                 encodedPassword,
-                command.role()
+                command.getRole()
         );
 
         // Set avatar URL if provided
-        if (command.avatarUrl() != null && !command.avatarUrl().isEmpty()) {
-            user.setAvatarUrl(command.avatarUrl());
+        if (command.getAvatarUrl() != null && !command.getAvatarUrl().isEmpty()) {
+            user.setAvatarUrl(command.getAvatarUrl());
         }
 
         return userRepository.save(user);
@@ -56,10 +56,10 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public TokenResult login(LoginCommand command) {
-        User user = userRepository.findByEmail(command.email())
+        User user = userRepository.findByEmail(command.getEmail())
                 .orElseThrow(() -> new InvalidCredentialsException("Invalid email or password"));
 
-        if (!passwordEncoder.matches(command.password(), user.getPassword())) {
+        if (!passwordEncoder.matches(command.getPassword(), user.getPassword())) {
             throw new InvalidCredentialsException("Invalid email or password");
         }
 

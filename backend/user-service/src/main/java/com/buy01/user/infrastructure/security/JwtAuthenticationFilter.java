@@ -12,6 +12,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import com.buy01.user.domain.model.Role;
 import com.buy01.user.domain.port.out.TokenGeneratorPort;
 
+import lombok.Getter;
+
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -59,6 +61,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
+
+    @Getter
     public static class UserPrincipal {
 
         private final UUID id;
@@ -69,30 +73,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             this.id = id;
             this.email = email;
             this.role = role;
-        }
-
-        public UUID getId() {
-            return id;
-        }
-
-        public String getEmail() {
-            return email;
-        }
-
-        public Role getRole() {
-            return role;
-        }
-
-        public UUID id() {
-            return id;
-        }
-
-        public String email() {
-            return email;
-        }
-
-        public Role role() {
-            return role;
         }
     }
 }

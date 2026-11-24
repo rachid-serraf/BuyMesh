@@ -12,6 +12,6 @@ class UserDeletedEventTest {
     void constructorAndGettersWork() {
         UUID userId = UUID.randomUUID();
         UserDeletedEvent event = new UserDeletedEvent(userId);
-        assertEquals(userId, event.userId());
+        assertEquals(userId, event.getUserId());
     }
 }

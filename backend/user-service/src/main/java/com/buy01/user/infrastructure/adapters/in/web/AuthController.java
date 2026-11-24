@@ -39,13 +39,13 @@ public class AuthController {
     @PostMapping(value = "/register", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<UserResponse> register(@ModelAttribute @Valid RegisterRequest request) {
         // Save avatar first if provided
-        String avatarUrl = avatarService.saveAvatar(request.avatar());
+        String avatarUrl = avatarService.saveAvatar(request.getAvatar());
 
         CreateUserCommand command = new CreateUserCommand(
-                request.name(),
-                request.email(),
-                request.password(),
-                request.role(),
+                request.getName(),
+                request.getEmail(),
+                request.getPassword(),
+                request.getRole(),
                 avatarUrl
         );
 
@@ -55,14 +55,14 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@RequestBody @Valid LoginRequest request) {
-        LoginCommand command = new LoginCommand(request.email(), request.password());
+        LoginCommand command = new LoginCommand(request.getEmail(), request.getPassword());
 
         TokenResult tokenResult = authService.login(command);
 
         return ResponseEntity.ok(
                 new LoginResponse(
-                        tokenResult.token(),
-                        tokenResult.expiresAt().toString()
+                        tokenResult.getToken(),
+                        tokenResult.getExpiresAt().toString()
                 )
         );
     }

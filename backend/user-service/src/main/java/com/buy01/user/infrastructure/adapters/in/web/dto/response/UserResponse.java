@@ -5,6 +5,9 @@ import java.util.UUID;
 import com.buy01.user.domain.model.Role;
 import com.buy01.user.domain.model.User;
 
+import lombok.Getter;
+
+@Getter
 public class UserResponse {
 
     private final UUID id;
@@ -29,45 +32,5 @@ public class UserResponse {
                 user.getAvatarUrl(),
                 user.getRole()
         );
-    }
-
-    public UUID getId() {
-        return id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public String getAvatarUrl() {
-        return avatarUrl;
-    }
-
-    public Role getRole() {
-        return role;
-    }
-
-    public UUID id() {
-        return id;
-    }
-
-    public String name() {
-        return name;
-    }
-
-    public String email() {
-        return email;
-    }
-
-    public String avatarUrl() {
-        return avatarUrl;
-    }
-
-    public Role role() {
-        return role;
     }
 }

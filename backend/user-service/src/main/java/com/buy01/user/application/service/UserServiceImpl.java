@@ -47,7 +47,7 @@ public class UserServiceImpl implements UserService {
         User user = findById(userId);
 
         // Handle avatar update - delete old avatar if new one is provided
-        String newAvatarUrl = command.avatarUrl();
+        String newAvatarUrl = command.getAvatarUrl();
         if (newAvatarUrl != null && !newAvatarUrl.isEmpty()) {
             // Delete old avatar if exists
             if (user.getAvatarUrl() != null && !user.getAvatarUrl().isEmpty()) {
@@ -56,7 +56,7 @@ public class UserServiceImpl implements UserService {
             user.setAvatarUrl(newAvatarUrl);
         }
 
-        user.update(command.name(), command.email(), newAvatarUrl);
+        user.update(command.getName(), command.getEmail(), newAvatarUrl);
         return userRepository.save(user);
     }
 
