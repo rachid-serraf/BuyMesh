@@ -112,7 +112,6 @@ pipeline {
         IMAGE_TAG            = "${BUILD_NUMBER}"
         HEALTH_RETRIES       = '30'
         HEALTH_INTERVAL      = '10'
-        NOTIFY_EMAIL         = "${env.NOTIFY_EMAIL}"
     }
 
     options {
