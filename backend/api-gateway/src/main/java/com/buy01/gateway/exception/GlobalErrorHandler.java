@@ -1,13 +1,11 @@
 package com.buy01.gateway.exception;
 
-import java.net.URI;
 import java.nio.charset.StandardCharsets;
 
 import org.springframework.boot.web.reactive.error.ErrorWebExceptionHandler;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ProblemDetail;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -24,14 +22,10 @@ public class GlobalErrorHandler implements ErrorWebExceptionHandler {
 
         String path = exchange.getRequest().getPath().value();
 
-        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(status, detail);
-        problemDetail.setTitle(title);
-        problemDetail.setInstance(URI.create(path));
-
         exchange.getResponse().setStatusCode(status);
         exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
 
-        String errorMessage = serializeProblemDetail(problemDetail);
+        String errorMessage = serializeError(status, title, detail, path);
         byte[] bytes = errorMessage.getBytes(StandardCharsets.UTF_8);
         DataBuffer buffer = exchange.getResponse().bufferFactory().wrap(bytes);
 
@@ -48,10 +42,7 @@ public class GlobalErrorHandler implements ErrorWebExceptionHandler {
         if (ex instanceof IllegalArgumentException) {
             return HttpStatus.BAD_REQUEST;
         }
-        if (ex instanceof org.springframework.web.reactive.resource.NoResourceFoundException) {
-            return HttpStatus.NOT_FOUND;
-        }
-        
+
         return HttpStatus.INTERNAL_SERVER_ERROR;
     }
 
@@ -65,20 +56,17 @@ public class GlobalErrorHandler implements ErrorWebExceptionHandler {
         if (ex instanceof IllegalArgumentException) {
             return "Bad Request";
         }
-        if (ex instanceof org.springframework.web.reactive.resource.NoResourceFoundException) {
-            return "Not Found";
-        }
-        
+
         return "Internal Server Error";
     }
 
-    private String serializeProblemDetail(ProblemDetail problemDetail) {
+    private String serializeError(HttpStatus status, String title, String detail, String instance) {
         StringBuilder sb = new StringBuilder();
         sb.append("{");
-        sb.append("\"detail\":\"").append(escapeJson(problemDetail.getDetail())).append("\",");
-        sb.append("\"instance\":\"").append(escapeJson(problemDetail.getInstance() != null ? problemDetail.getInstance().toString() : "")).append("\",");
-        sb.append("\"status\":").append(problemDetail.getStatus()).append(",");
-        sb.append("\"title\":\"").append(escapeJson(problemDetail.getTitle())).append("\"");
+        sb.append("\"detail\":\"").append(escapeJson(detail)).append("\",");
+        sb.append("\"instance\":\"").append(escapeJson(instance != null ? instance : "")).append("\",");
+        sb.append("\"status\":").append(status.value()).append(",");
+        sb.append("\"title\":\"").append(escapeJson(title)).append("\"");
         sb.append("}");
         return sb.toString();
     }

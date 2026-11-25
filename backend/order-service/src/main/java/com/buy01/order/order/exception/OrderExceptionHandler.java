@@ -1,6 +1,7 @@
 package com.buy01.order.order.exception;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +19,7 @@ import com.buy01.order.order.controller.OrderController;
 import com.buy01.order.order.dto.ApiError;
 import com.buy01.order.order.stats.controller.OrderStatsController;
 
-import jakarta.validation.ConstraintViolationException;
+import javax.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -65,10 +66,14 @@ public class OrderExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiError> handleValidation(MethodArgumentNotValidException ex) {
         List<String> details = ex.getBindingResult().getAllErrors().stream()
-                .map(error -> error instanceof FieldError fieldError
-                        ? fieldError.getField() + ": " + fieldError.getDefaultMessage()
-                        : error.getDefaultMessage())
-                .toList();
+                .map(error -> {
+                    if (error instanceof FieldError) {
+                        FieldError fieldError = (FieldError) error;
+                        return fieldError.getField() + ": " + fieldError.getDefaultMessage();
+                    }
+                    return error.getDefaultMessage();
+                })
+                .collect(Collectors.toList());
 
         return ResponseEntity.badRequest()
                 .body(ApiError.of("VALIDATION_ERROR", "Request validation failed", details));
@@ -78,7 +83,7 @@ public class OrderExceptionHandler {
     public ResponseEntity<ApiError> handleConstraintViolation(ConstraintViolationException ex) {
         List<String> details = ex.getConstraintViolations().stream()
                 .map(violation -> violation.getPropertyPath() + ": " + violation.getMessage())
-                .toList();
+                .collect(Collectors.toList());
 
         return ResponseEntity.badRequest()
                 .body(ApiError.of("VALIDATION_ERROR", "Request validation failed", details));

@@ -23,12 +23,12 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -54,10 +54,10 @@ class MediaControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockitoBean
+    @MockBean
     private MediaUseCase mediaUseCase;
 
-    @MockitoBean
+    @MockBean
     private JwtUtil jwtUtil;
 
     @Test
@@ -86,11 +86,7 @@ class MediaControllerTest {
     void getImageBatchReturnsEmptyMapForEmptyProductIds() throws Exception {
         mockMvc.perform(post("/media/batch")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {
-                                  "productIds": []
-                                }
-                                """))
+                        .content("{\"productIds\": []}"))
                 .andExpect(status().isOk())
                 .andExpect(content().json("{}"));
 
@@ -123,11 +119,7 @@ class MediaControllerTest {
 
                 mockMvc.perform(post("/media/batch")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {
-                                  "productIds": ["prod-1", "prod-2"]
-                                }
-                                """))
+                        .content("{\"productIds\": [\"prod-1\", \"prod-2\"]}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$['prod-1']").value("/media/img-1"))
                 .andExpect(jsonPath("$['prod-2']").value("/media/img-2"));

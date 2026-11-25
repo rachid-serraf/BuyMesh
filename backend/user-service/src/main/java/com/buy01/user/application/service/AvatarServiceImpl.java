@@ -14,7 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.buy01.user.domain.port.in.AvatarService;
 
-import jakarta.annotation.PostConstruct;
+import javax.annotation.PostConstruct;
 
 @Service
 public class AvatarServiceImpl implements AvatarService {

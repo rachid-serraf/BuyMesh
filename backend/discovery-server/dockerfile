@@ -1,7 +1,7 @@
 # Stage 1: Build the application
 # Use the multi-platform Maven image; the unversioned Alpine variant is not
 # available for every platform.
-FROM maven:3.9-eclipse-temurin-17 AS build
+FROM maven:3.8-eclipse-temurin-11 AS build
 WORKDIR /app
 
 # Copy the pom.xml and source code
@@ -13,8 +13,8 @@ RUN mvn clean package -DskipTests
 
 # Stage 2: Create the final lightweight image
 # The unversioned Alpine JRE tag is no longer published for every platform.
-# Jammy is a supported multi-architecture Temurin 17 runtime image.
-FROM eclipse-temurin:17-jre-jammy
+# Temurin 11 JRE on Alpine keeps the runtime aligned with the Java 11 build.
+FROM eclipse-temurin:11-jre
 WORKDIR /app
 
 # Copy ONLY the built jar from the build stage

@@ -21,7 +21,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -49,13 +49,13 @@ class UserControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockitoBean
+    @MockBean
     private UserService userService;
 
-    @MockitoBean
+    @MockBean
     private AvatarService avatarService;
 
-    @MockitoBean
+    @MockBean
     private TokenGeneratorPort tokenGeneratorPort;
 
     @Test

@@ -1,5 +1,5 @@
 # Stage 1: Build the application
-FROM maven:3.9-eclipse-temurin-21-alpine AS build
+FROM maven:3.9-eclipse-temurin-11 AS build
 WORKDIR /app
 
 # Copy the pom.xml and source code
@@ -10,10 +10,11 @@ COPY src ./src
 RUN mvn clean package -DskipTests
 
 # Stage 2: Create the final lightweight image
-FROM eclipse-temurin:21-jre-alpine
+FROM eclipse-temurin:11-jre
 WORKDIR /app
 
-RUN apk add --no-cache curl
+RUN apt-get update && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy ONLY the built jar from the build stage
 COPY --from=build /app/target/*.jar app.jar

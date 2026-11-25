@@ -16,9 +16,9 @@ The Discovery Server uses Netflix Eureka for service registration and discovery.
 
 ## Technology Stack
 
-- Spring Boot 3.x
+- Spring Boot 2.7.x
 - Netflix Eureka Server
-- Java 21
+- Java 11
 
 ## Configuration
 

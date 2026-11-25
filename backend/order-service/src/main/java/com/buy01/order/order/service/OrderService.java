@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -116,7 +117,7 @@ public class OrderService {
 
         String imageUrl = product.imagesIds() == null || product.imagesIds().isEmpty()
                 ? null
-                : trimToNull(product.imagesIds().getFirst());
+                : trimToNull(product.imagesIds().get(0));
 
         OrderItem item = OrderItem.builder()
                 .productId(product.id() == null ? request.productId().trim() : product.id())
@@ -338,7 +339,7 @@ public class OrderService {
                         && !item.getProductId().isBlank()
                         && item.getQuantity() > 0)
                 .map(item -> new StockItemRequest(item.getProductId(), item.getQuantity()))
-                .toList();
+                .collect(Collectors.toList());
         return new StockAdjustRequest(stockItems);
     }
 
@@ -476,7 +477,7 @@ public class OrderService {
                         .price(item.getPrice())
                         .quantity(item.getQuantity())
                         .build())
-                .toList();
+                .collect(Collectors.toList());
     }
 
     private Pageable toPageable(OrderQuery query) {

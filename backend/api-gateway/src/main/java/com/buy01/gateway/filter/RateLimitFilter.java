@@ -1,6 +1,5 @@
 package com.buy01.gateway.filter;
 
-import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Map;
@@ -9,7 +8,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ProblemDetail;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
@@ -67,18 +65,12 @@ public class RateLimitFilter implements WebFilter {
 
         String path = exchange.getRequest().getURI().getPath();
 
-        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.TOO_MANY_REQUESTS, "Too many requests. Please try again later.");
-        problemDetail.setTitle("Too Many Requests");
-        problemDetail.setInstance(URI.create(path));
-
-        String body = String.format("""
-        {
-            "detail": "Too many requests. Please try again later.",
-            "instance": "%s",
-            "status": 429,
-            "title": "Too Many Requests"
-        }
-        """, path);
+        String body = String.format("{\n"
+                + "    \"detail\": \"Too many requests. Please try again later.\",\n"
+                + "    \"instance\": \"%s\",\n"
+                + "    \"status\": 429,\n"
+                + "    \"title\": \"Too Many Requests\"\n"
+                + "}", path);
 
         byte[] bytes = body.getBytes(StandardCharsets.UTF_8);
 

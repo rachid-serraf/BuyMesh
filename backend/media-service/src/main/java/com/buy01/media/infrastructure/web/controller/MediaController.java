@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.springframework.core.io.Resource;
 import org.springframework.http.CacheControl;
@@ -92,7 +93,7 @@ public class MediaController {
                     var media = mediaService.uploadImage(file, principal.id());
                     return MediaMapper.toResponse(media);
                 })
-                .toList();
+                .collect(Collectors.toList());
     }
 
 }

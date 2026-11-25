@@ -1,9 +1,22 @@
 package com.buy01.product.infrastructure.web.dto;
 
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotBlank;
 
-public record StockItemRequest(
-        @NotBlank(message = "productId is required") String productId,
-        @Min(value = 1, message = "quantity must be at least 1") int quantity) {
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class StockItemRequest {
+
+    @NotBlank(message = "productId is required")
+    private String productId;
+
+    @Min(value = 1, message = "quantity must be at least 1")
+    private int quantity;
 }

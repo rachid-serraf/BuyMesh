@@ -123,7 +123,7 @@ class CartServiceSpec extends Specification {
         1 * productClient.getProduct("product-1") >> newProduct(10)
 
         def ex = thrown(ResponseStatusException)
-        ex.statusCode == HttpStatus.CONFLICT
+        ex.status == HttpStatus.CONFLICT
         0 * cartRepository.save(_)
     }
 
@@ -156,7 +156,7 @@ class CartServiceSpec extends Specification {
         1 * productClient.getProduct("missing") >> null
 
         def ex = thrown(ResponseStatusException)
-        ex.statusCode == HttpStatus.NOT_FOUND
+        ex.status == HttpStatus.NOT_FOUND
         0 * cartRepository.save(_)
     }
 
@@ -338,7 +338,7 @@ class CartServiceSpec extends Specification {
         0 * cartRepository.findByUserId(_)
         0 * orderService.createOrderForBuyer(_, _)
         def ex = thrown(ResponseStatusException)
-        ex.statusCode == HttpStatus.BAD_REQUEST
+        ex.status == HttpStatus.BAD_REQUEST
     }
 
     def "checkoutItems rejects an empty cart"() {
@@ -352,7 +352,7 @@ class CartServiceSpec extends Specification {
         then:
         1 * cartRepository.findByUserId(userId) >> Optional.of(cart)
         def ex = thrown(ResponseStatusException)
-        ex.statusCode == HttpStatus.BAD_REQUEST
+        ex.status == HttpStatus.BAD_REQUEST
     }
 
     def "checkoutItems rejects an unknown cart"() {
@@ -365,7 +365,7 @@ class CartServiceSpec extends Specification {
         then:
         1 * cartRepository.findByUserId(userId) >> Optional.empty()
         def ex = thrown(ResponseStatusException)
-        ex.statusCode == HttpStatus.NOT_FOUND
+        ex.status == HttpStatus.NOT_FOUND
     }
 
     def "removeItem removes the matching product and saves the cart"() {
@@ -396,7 +396,7 @@ class CartServiceSpec extends Specification {
         then:
         1 * cartRepository.findByUserId(userId) >> Optional.empty()
         def ex = thrown(ResponseStatusException)
-        ex.statusCode == HttpStatus.NOT_FOUND
+        ex.status == HttpStatus.NOT_FOUND
         0 * cartRepository.save(_)
     }
 
@@ -413,7 +413,7 @@ class CartServiceSpec extends Specification {
         then:
         1 * cartRepository.findByUserId(userId) >> Optional.of(cart)
         def ex = thrown(ResponseStatusException)
-        ex.statusCode == HttpStatus.NOT_FOUND
+        ex.status == HttpStatus.NOT_FOUND
         0 * cartRepository.save(_)
     }
 

@@ -24,4 +24,29 @@ class MessagingEventTest {
 
         assertThat(event.userId()).isEqualTo("user-1");
     }
+
+    @Test
+    void orderStockItemSupportsConstructorAndAccessors() {
+        OrderStockItem item = new OrderStockItem("prod-1", 2);
+
+        assertThat(item.getProductId()).isEqualTo("prod-1");
+        assertThat(item.getQuantity()).isEqualTo(2);
+
+        item.setProductId("prod-2");
+        item.setQuantity(4);
+
+        assertThat(item.getProductId()).isEqualTo("prod-2");
+        assertThat(item.getQuantity()).isEqualTo(4);
+    }
+
+    @Test
+    void orderStockItemSupportsNoArgConstructor() {
+        OrderStockItem item = new OrderStockItem();
+
+        item.setProductId("prod-1");
+        item.setQuantity(1);
+
+        assertThat(item.getProductId()).isEqualTo("prod-1");
+        assertThat(item.getQuantity()).isEqualTo(1);
+    }
 }

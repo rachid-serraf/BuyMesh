@@ -13,7 +13,7 @@ import com.buy01.order.common.Role;
 import com.buy01.order.order.exception.OrderAccessDeniedException;
 import com.buy01.order.security.JwtAuthenticationFilter.UserPrincipal;
 
-import jakarta.validation.Valid;
+import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController

@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -128,7 +129,7 @@ public class CartService {
             try {
                 product = fetchProduct(item.getProductId());
             } catch (ResponseStatusException e) {
-                if (e.getStatusCode().value() == HttpStatus.NOT_FOUND.value()) {
+                if (e.getStatus().value() == HttpStatus.NOT_FOUND.value()) {
                     issues.add(new CartItemIssue(
                             item.getProductId(),
                             item.getName(),
@@ -230,7 +231,7 @@ public class CartService {
                             item.getUnitPrice(),
                             item.getQuantity(),
                             item.getCategory()))
-                    .toList();
+                    .collect(Collectors.toList());
 
             orders.add(orderService.createOrderForBuyer(
                     userId,
@@ -276,7 +277,7 @@ public class CartService {
 
     private String firstImage(ProductResponse product) {
         List<String> images = product.imagesIds();
-        return images == null || images.isEmpty() ? null : images.getFirst();
+        return images == null || images.isEmpty() ? null : images.get(0);
     }
 
     private ResponseStatusException insufficientStock(ProductResponse product, int requestedQuantity) {

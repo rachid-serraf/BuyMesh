@@ -1,6 +1,12 @@
 package com.buy01.user.infrastructure.adapters.in.web.dto.response;
 
-public record LoginResponse(
-        String token,
-        String expiresAt
-) {}
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+@Getter
+@AllArgsConstructor
+public class LoginResponse {
+
+    private final String token;
+    private final String expiresAt;
+}

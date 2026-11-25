@@ -8,7 +8,7 @@
     <!-- 2. HIDE THE "RESOLVED EXCEPTION" WARNINGS -->
     <logger name="org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver" level="OFF" />
     <logger name="org.springframework.web.servlet.handler.AbstractHandlerExceptionResolver" level="OFF" />
-    <logger name="org.springframework.security.authorization.AuthorizationDeniedException" level="OFF" />
+    <logger name="org.springframework.security.access.AccessDeniedException" level="OFF" />
 
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>

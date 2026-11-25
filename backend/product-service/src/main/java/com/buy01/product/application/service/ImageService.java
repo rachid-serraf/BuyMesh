@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpStatusCode;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -85,14 +85,14 @@ public class ImageService {
                 return mediaWebClient.get()
                                 .uri("/media/product/{id}", productId)
                                 .retrieve()
-                                .onStatus(HttpStatusCode::is4xxClientError, response -> response
+                                .onStatus(HttpStatus::is4xxClientError, response -> response
                                                 .bodyToMono(String.class)
                                                 .defaultIfEmpty("No error details")
                                                 .map(body -> new MediaServiceException(
                                                                 response.statusCode().value(),
                                                                 "Media service client error for product " + productId,
                                                                 body)))
-                                .onStatus(HttpStatusCode::is5xxServerError, response -> response
+                                .onStatus(HttpStatus::is5xxServerError, response -> response
                                                 .bodyToMono(String.class)
                                                 .defaultIfEmpty("No error details")
                                                 .map(body -> new MediaServiceException(
@@ -123,14 +123,14 @@ public class ImageService {
                                 .bodyValue(requestBody)
                                 .retrieve()
 
-                                .onStatus(HttpStatusCode::is4xxClientError,
+                                .onStatus(HttpStatus::is4xxClientError,
                                                 response -> response.bodyToMono(String.class)
                                                                 .defaultIfEmpty("No error body")
                                                                 .map(body -> new MediaServiceException(
                                                                                 response.statusCode().value(),
                                                                                 "Media service client error",
                                                                                 body)))
-                                .onStatus(HttpStatusCode::is5xxServerError,
+                                .onStatus(HttpStatus::is5xxServerError,
                                                 response -> response.bodyToMono(String.class)
                                                                 .defaultIfEmpty("No error body")
                                                                 .map(body -> new MediaServiceException(

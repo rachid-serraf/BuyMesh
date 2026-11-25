@@ -17,13 +17,13 @@ The Product Service handles product management including CRUD operations, invent
 
 ## Technology Stack
 
-- Spring Boot 3.x (WebFlux - Reactive)
+- Spring Boot 2.7.x (WebFlux - Reactive)
 - Spring Security
 - Spring Data MongoDB (Reactive)
 - Spring Kafka
 - MongoDB
 - Kafka
-- Java 21
+- Java 11
 
 ## Architecture
 

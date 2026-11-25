@@ -2,6 +2,7 @@ package com.buy01.product.infrastructure.messaging;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
@@ -33,10 +34,10 @@ public class OrderStockListener {
         }
 
         List<StockItem> items = event.items().stream()
-                .filter(item -> item.productId() != null && !item.productId().isBlank()
-                        && item.quantity() > 0)
-                .map(item -> new StockItem(item.productId(), item.quantity()))
-                .toList();
+                .filter(item -> item.getProductId() != null && !item.getProductId().isBlank()
+                        && item.getQuantity() > 0)
+                .map(item -> new StockItem(item.getProductId(), item.getQuantity()))
+                .collect(Collectors.toList());
 
         if (items.isEmpty()) {
             acknowledgment.acknowledge();

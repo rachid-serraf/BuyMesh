@@ -1,6 +1,7 @@
 package com.buy01.order.order.messaging;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -38,7 +39,7 @@ public class OrderStockEventPublisher {
         List<OrderStockItem> items = order.getItems().stream()
                 .filter(item -> item.getProductId() != null && item.getQuantity() > 0)
                 .map(this::toStockItem)
-                .toList();
+                .collect(Collectors.toList());
 
         if (items.isEmpty()) {
             return;
@@ -46,15 +47,12 @@ public class OrderStockEventPublisher {
 
         OrderStockEvent event = new OrderStockEvent(order.getId(), action, items);
         orderStockKafkaTemplate.send(orderStockTopic, order.getId(), event)
-                .whenComplete((result, error) -> {
-                    if (error != null) {
-                        log.error(
+                .addCallback(
+                        result -> log.info(
+                                "Published {} stock event for order {}", action, order.getId()),
+                        error -> log.error(
                                 "Failed to publish {} stock event for order {}",
-                                action, order.getId(), error);
-                        return;
-                    }
-                    log.info("Published {} stock event for order {}", action, order.getId());
-                });
+                                action, order.getId(), error));
     }
 
     private OrderStockItem toStockItem(OrderItem item) {

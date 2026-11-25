@@ -1,8 +1,8 @@
 package com.buy01.order.order.exception
 
-import jakarta.validation.ConstraintViolation
-import jakarta.validation.ConstraintViolationException
-import jakarta.validation.Path
+import javax.validation.ConstraintViolation
+import javax.validation.ConstraintViolationException
+import javax.validation.Path
 import org.springframework.core.MethodParameter
 import org.springframework.http.HttpStatus
 import org.springframework.http.converter.HttpMessageNotReadableException

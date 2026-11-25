@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
 
@@ -68,7 +69,7 @@ public class OrderStatsMapper {
                         .quantity(row.getQuantity())
                         .amountSpent(money(row.getAmountSpent()))
                         .build())
-                .toList();
+                .collect(Collectors.toList());
     }
 
     private List<BestSellingProductResponse> toBestSellingProducts(
@@ -86,7 +87,7 @@ public class OrderStatsMapper {
                         .unitsSold(row.getQuantity())
                         .revenue(money(row.getAmountSpent()))
                         .build())
-                .toList();
+                .collect(Collectors.toList());
     }
 
     private List<CategoryStatsResponse> toCategoryStats(List<CategoryAggregation> rows) {
@@ -100,7 +101,7 @@ public class OrderStatsMapper {
                         .quantity(row.getQuantity())
                         .amountSpent(money(row.getAmountSpent()))
                         .build())
-                .toList();
+                .collect(Collectors.toList());
     }
 
     private List<MonthlyRevenueResponse> toMonthlyRevenue(

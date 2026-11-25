@@ -9,7 +9,6 @@ import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.web.reactive.resource.NoResourceFoundException;
 
 class GlobalErrorHandlerTest {
 
@@ -42,14 +41,6 @@ class GlobalErrorHandlerTest {
     }
 
     @Test
-    void handlesNoResourceFoundException() {
-        MockServerWebExchange exchange = handle(new NoResourceFoundException("/missing"));
-
-        assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
-        assertThat(body(exchange)).contains("\"title\":\"Not Found\"").contains("\"status\":404");
-    }
-
-    @Test
     void handlesGenericExceptionWithFallbackDetail() {
         MockServerWebExchange exchange = handle(new RuntimeException());
 
@@ -62,11 +53,9 @@ class GlobalErrorHandlerTest {
 
     @Test
     void serializesMissingDetailAndInstanceAsEmptyStrings() {
-        org.springframework.http.ProblemDetail problemDetail = org.springframework.http.ProblemDetail
-                .forStatus(HttpStatus.BAD_REQUEST);
-
         String json = org.springframework.test.util.ReflectionTestUtils
-                .invokeMethod(handler, "serializeProblemDetail", problemDetail);
+                .invokeMethod(handler, "serializeError", HttpStatus.BAD_REQUEST, "Bad Request",
+                        null, null);
 
         assertThat(json).contains("\"detail\":\"\"").contains("\"instance\":\"\"");
     }

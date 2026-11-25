@@ -37,12 +37,12 @@ class JwtUtilTest {
     void generateAndValidateToken() {
         UUID userId = UUID.randomUUID();
         TokenResult result = jwtUtil.generateToken(userId, "test@example.com", Role.CLIENT);
-        assertNotNull(result.token());
-        assertNotNull(result.expiresAt());
-        assertTrue(jwtUtil.validateToken(result.token()));
-        assertEquals(userId, jwtUtil.extractUserId(result.token()));
-        assertEquals("test@example.com", jwtUtil.extractEmail(result.token()));
-        assertEquals(Role.CLIENT, jwtUtil.extractRole(result.token()));
+        assertNotNull(result.getToken());
+        assertNotNull(result.getExpiresAt());
+        assertTrue(jwtUtil.validateToken(result.getToken()));
+        assertEquals(userId, jwtUtil.extractUserId(result.getToken()));
+        assertEquals("test@example.com", jwtUtil.extractEmail(result.getToken()));
+        assertEquals(Role.CLIENT, jwtUtil.extractRole(result.getToken()));
     }
 
     @Test

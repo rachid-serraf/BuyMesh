@@ -1,12 +1,13 @@
 package com.buy01.product.infrastructure.web.controller;
 
 import java.time.Instant;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.buy01.product.domain.model.Category;
 import com.buy01.product.infrastructure.web.dto.*;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -24,7 +25,7 @@ import com.buy01.product.domain.ports.inbound.ProductUseCase;
 import com.buy01.product.infrastructure.security.JwtAuthenticationFilter.UserPrincipal;
 import com.buy01.product.infrastructure.web.mapper.ProductWebMapper;
 
-import jakarta.validation.Valid;
+import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 
@@ -62,9 +63,11 @@ public class ProductController {
         return productUseCase.getProductWithImages(id)
                 .<ResponseEntity<?>>map(product -> ResponseEntity.ok(product))
                 .switchIfEmpty(Mono.defer(() -> {
-                    ProblemDetail problem = ProblemDetail.forStatusAndDetail(
-                            HttpStatus.NOT_FOUND,
-                            "Product with ID " + id + " not found");
+                    Map<String, Object> problem = new LinkedHashMap<>();
+                    problem.put("type", "about:blank");
+                    problem.put("title", "Not Found");
+                    problem.put("status", HttpStatus.NOT_FOUND.value());
+                    problem.put("detail", "Product with ID " + id + " not found");
 
                     return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body(problem));
                 }));

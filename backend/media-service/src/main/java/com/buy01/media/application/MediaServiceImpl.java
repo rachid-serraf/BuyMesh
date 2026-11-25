@@ -148,7 +148,7 @@ public class MediaServiceImpl implements MediaUseCase {
 
     @Override
     public List<String> getProdutImages(String productId) {
-        return repository.findByProductId(productId).stream().map(Media::getId).toList();
+        return repository.findByProductId(productId).stream().map(Media::getId).collect(Collectors.toList());
     }
 
 

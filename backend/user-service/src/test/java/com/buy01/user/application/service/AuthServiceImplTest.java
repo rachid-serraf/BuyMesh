@@ -89,7 +89,7 @@ class AuthServiceImplTest {
 
         TokenResult result = authService.login(new LoginCommand("john@example.com", "password"));
 
-        assertEquals("token", result.token());
+        assertEquals("token", result.getToken());
     }
 
     @Test

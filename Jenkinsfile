@@ -104,14 +104,34 @@ def e2eImageExports(String tag) {
     }.join('\n') + '\n'
 }
 
+def mavenVersion(String dirPath) {
+    return sh(script: "cd ${dirPath} && ./mvnw -q help:evaluate -Dexpression=project.version -DforceStdout",
+              returnStdout: true).readLines().last().trim()
+}
+
+// local image  <id>-image:<srcTag>  ->  $REGISTRY/buymesh/<id>:<dstTag>
+def pushImage(svc, String srcTag, String dstTag) {
+    sh """
+        docker tag ${imageRepo(svc)}:${srcTag} \$REGISTRY/buymesh/${svc.id}:${dstTag}
+        docker push \$REGISTRY/buymesh/${svc.id}:${dstTag}
+        docker rmi \$REGISTRY/buymesh/${svc.id}:${dstTag} || true
+    """
+}
+
 pipeline {
     agent any
+    tools { jdk 'jdk11' }
 
     environment {
         COMPOSE_PROJECT_NAME = 'buymesh'
         IMAGE_TAG            = "${BUILD_NUMBER}"
         HEALTH_RETRIES       = '30'
         HEALTH_INTERVAL      = '10'
+        NEXUS_CREDS          = credentials('nexus-creds')
+        NEXUS_USER           = "${NEXUS_CREDS_USR}"
+        NEXUS_PASSWORD       = "${NEXUS_CREDS_PSW}"
+        NEXUS_URL            = 'http://nexus:8081'
+        REGISTRY             = 'localhost:5000'
     }
 
     options {
@@ -222,6 +242,7 @@ pipeline {
                 script {
                     runParallel(changedServices()) { svc ->
                         def repo = imageRepo(svc)
+
                         if (svc.builder == 'jib') {
                             dir(svc.dir) {
                                 sh """
@@ -231,6 +252,7 @@ pipeline {
                                       -Djib.to.tags=latest \\
                                       -Djib.from.platforms=linux/arm64
                                 """
+
                             }
                         } else {
                             sh """
@@ -239,6 +261,7 @@ pipeline {
                                 [ -n "\$DF" ] || { echo "No Dockerfile found for ${svc.id}"; exit 1; }
                                 docker build -f "\$DF" -t ${repo}:${env.IMAGE_TAG} -t ${repo}:latest ${svc.dir}
                             """
+
                         }
                     }
                 }
@@ -256,6 +279,36 @@ pipeline {
                 }
             }
         }
+
+        stage('Publish JARs to Nexus') {
+            when { allOf { branch 'main'; not { changeRequest() } } }
+            steps {
+                script {
+                    for (svc in changedServices().findAll { it.type == 'maven' }) {
+                        dir(svc.dir) {
+                            sh './mvnw -B deploy -DskipTests'
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Push Images to Nexus') {
+            when { allOf { branch 'main'; not { changeRequest() } } }
+            steps {
+                script {
+                    sh 'echo "$NEXUS_PASSWORD" | docker login "$REGISTRY" -u "$NEXUS_USER" --password-stdin'
+                    for (svc in changedServices()) {
+                        pushImage(svc, env.IMAGE_TAG, env.IMAGE_TAG)          // build number
+                        if (svc.type == 'maven') {
+                            pushImage(svc, env.IMAGE_TAG, mavenVersion(svc.dir))  // Maven version tag
+                        }
+                    }
+                }
+            }
+            post { always { sh 'docker logout "$REGISTRY" || true' } }
+        }
+
 
         stage('E2E Tests') {
             when {
