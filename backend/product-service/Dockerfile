@@ -13,7 +13,8 @@ RUN mvn clean package -DskipTests
 FROM eclipse-temurin:11-jre
 WORKDIR /app
 
-RUN apk add --no-cache curl
+RUN apt-get update && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy ONLY the built jar from the build stage
 COPY --from=build /app/target/*.jar app.jar
