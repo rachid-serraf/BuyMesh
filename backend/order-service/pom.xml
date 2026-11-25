@@ -260,7 +260,7 @@
                 <version>3.4.4</version>
                 <configuration>
                     <from>
-                      <image>eclipse-temurin:11-jre-alpine</image>
+                      <image>eclipse-temurin:11-jre</image>
                     </from>
                     <to>
                       <image>${image}</image>
