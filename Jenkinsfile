@@ -128,7 +128,6 @@ pipeline {
         IMAGE_TAG            = "${env.BRANCH_NAME == 'main' ? env.BUILD_NUMBER : 'pr-' + env.BUILD_NUMBER}"
         HEALTH_RETRIES       = '30'
         HEALTH_INTERVAL      = '10'
-        NOTIFY_EMAIL         = "${env.NOTIFY_EMAIL}"
         NEXUS_CREDS          = credentials('nexus-creds')
         NEXUS_USER           = "${NEXUS_CREDS_USR}"
         NEXUS_PASSWORD       = "${NEXUS_CREDS_PSW}"
@@ -527,30 +526,26 @@ pipeline {
             script {
                 def msg = env.CHANGE_ID
                     ? "PR #${env.CHANGE_ID} validation passed — ${env.BUILD_URL}"
-                    : "Build #${env.BUILD_NUMBER} finished successfully — ${env.BUILD_URL}\nDeployed services: ${env.SERVICES_TO_DEPLOY ?: 'none (no changes)'}"
-                if (env.NOTIFY_EMAIL?.trim()) {
-                    catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
-                        emailext(
-                            to: env.NOTIFY_EMAIL,
-                            recipientProviders: [requestor(), developers()],
-                            subject: "SUCCESS: Build #${env.BUILD_NUMBER}",
-                            body: msg
-                        )
-                    }
+                    : "Build #${env.BUILD_NUMBER} deployed successfully — ${env.BUILD_URL}\nDeployed services: ${env.SERVICES_TO_DEPLOY ?: 'none (no changes)'}"
+                catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
+                    emailext(
+                        to: env.NOTIFY_EMAIL,
+                        recipientProviders: [requestor(), developers()],
+                        subject: "SUCCESS: Build #${env.BUILD_NUMBER}",
+                        body: msg
+                    )
                 }
             }
         }
         failure {
             script {
-                if (env.NOTIFY_EMAIL?.trim()) {
-                    catchError(buildResult: 'FAILURE', stageResult: 'SUCCESS') {
-                        emailext(
-                            to: env.NOTIFY_EMAIL,
-                            recipientProviders: [requestor(), developers(), culprits()],
-                            subject: "FAILED: Build #${env.BUILD_NUMBER}",
-                            body: "Build failed — ${env.BUILD_URL}\nCheck the console for details."
-                        )
-                    }
+                catchError(buildResult: 'FAILURE', stageResult: 'SUCCESS') {
+                    emailext(
+                        to: env.NOTIFY_EMAIL,
+                        recipientProviders: [requestor(), developers(), culprits()],
+                        subject: "FAILED: Build #${env.BUILD_NUMBER}",
+                        body: "Build failed — ${env.BUILD_URL}\nCheck the console for details."
+                    )
                 }
             }
         }
