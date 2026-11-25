@@ -105,14 +105,14 @@ def e2eImageExports(String tag) {
 }
 
 pipeline {
-    agent { label "${params.AGENT_LABEL ?: 'built-in'}" }
+    agent any
 
     environment {
         COMPOSE_PROJECT_NAME = 'buymesh'
         IMAGE_TAG            = "${BUILD_NUMBER}"
         HEALTH_RETRIES       = '30'
         HEALTH_INTERVAL      = '10'
-        NOTIFY_EMAIL         = "${params.NOTIFY_EMAIL ?: 'devops@buymesh.local'}"
+        NOTIFY_EMAIL         = "${env.NOTIFY_EMAIL}"
     }
 
     options {
@@ -123,11 +123,7 @@ pipeline {
     }
 
     parameters {
-        string(name: 'AGENT_LABEL', defaultValue: 'built-in',
-               description: 'Jenkins agent label. Set to a remote agent label for distributed builds.')
-        string(name: 'NOTIFY_EMAIL', defaultValue: 'devops@buymesh.local',
-               description: 'Email recipient for build success/failure notifications.')
-        booleanParam(name: 'RUN_E2E', defaultValue: true,
+        booleanParam(name: 'RUN_E2E', defaultValue: false,
                      description: 'Run E2E tests on main-branch builds.')
         booleanParam(name: 'DEPLOY_ENABLED', defaultValue: true,
                      description: 'Deploy changed services to the environment on main-branch builds.')
