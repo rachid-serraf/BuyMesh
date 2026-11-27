@@ -12,6 +12,7 @@ import com.buy01.order.cart.service.CartService
 import com.buy01.order.common.Role
 import com.buy01.order.common.Status
 import com.buy01.order.order.dto.OrderResponse
+import com.buy01.order.order.exception.OrderAccessDeniedException
 import com.buy01.order.order.model.entity.DeliveryAddress
 import com.buy01.order.security.JwtAuthenticationFilter.UserPrincipal
 
@@ -95,5 +96,50 @@ class CartControllerSpec extends Specification {
         1 * cartService.removeItem(principal.id(), "product-1") >> cart
         response.statusCode == HttpStatus.OK
         response.body == cart
+    }
+
+    def "sellers cannot add products to the cart"() {
+        given:
+        def seller = new UserPrincipal(UUID.randomUUID(), "seller@example.com", Role.SELLER)
+
+        when:
+        controller.addToCart(new CartItemDTO.AddRequest("product-1", 1), seller)
+
+        then:
+        def ex = thrown(OrderAccessDeniedException)
+        ex.message.contains("Only clients")
+        0 * cartService._
+    }
+
+    def "sellers cannot check out the cart"() {
+        given:
+        def seller = new UserPrincipal(UUID.randomUUID(), "seller@example.com", Role.SELLER)
+
+        when:
+        controller.checkout(seller, new CheckoutRequest(address()))
+
+        then:
+        def ex = thrown(OrderAccessDeniedException)
+        ex.message.contains("Only clients")
+        0 * cartService._
+    }
+
+    def "sellers cannot view or remove cart items"() {
+        given:
+        def seller = new UserPrincipal(UUID.randomUUID(), "seller@example.com", Role.SELLER)
+
+        when:
+        controller.getCartItems(seller)
+
+        then:
+        thrown(OrderAccessDeniedException)
+        0 * cartService._
+
+        when:
+        controller.removeItem("product-1", seller)
+
+        then:
+        thrown(OrderAccessDeniedException)
+        0 * cartService._
     }
 }

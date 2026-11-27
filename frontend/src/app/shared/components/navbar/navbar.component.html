@@ -50,26 +50,28 @@
         </a>
       }
 
-      <button
-        type="button"
-        class="btn btn-ghost btn-icon cart-btn"
-        aria-haspopup="dialog"
-        [attr.aria-expanded]="cartDrawerOpen()"
-        [attr.aria-label]="'Open cart, ' + cartCount() + (cartCount() === 1 ? ' item' : ' items')"
-        (click)="openCart()"
-      >
-        <lucide-angular [img]="ShoppingBag" [size]="20"></lucide-angular>
-        @if (cartCount() > 0) {
-          <span
-            class="cart-badge"
-            [class.bounce]="cartBadgeBouncing()"
-            aria-hidden="true"
-            (animationend)="cartBadgeBouncing.set(false)"
-          >
-            {{ cartCount() > 99 ? '99+' : cartCount() }}
-          </span>
-        }
-      </button>
+      @if (!isSeller()) {
+        <button
+          type="button"
+          class="btn btn-ghost btn-icon cart-btn"
+          aria-haspopup="dialog"
+          [attr.aria-expanded]="cartDrawerOpen()"
+          [attr.aria-label]="'Open cart, ' + cartCount() + (cartCount() === 1 ? ' item' : ' items')"
+          (click)="openCart()"
+        >
+          <lucide-angular [img]="ShoppingBag" [size]="20"></lucide-angular>
+          @if (cartCount() > 0) {
+            <span
+              class="cart-badge"
+              [class.bounce]="cartBadgeBouncing()"
+              aria-hidden="true"
+              (animationend)="cartBadgeBouncing.set(false)"
+            >
+              {{ cartCount() > 99 ? '99+' : cartCount() }}
+            </span>
+          }
+        </button>
+      }
 
       @if (isLoggedIn()) {
         <button
@@ -107,28 +109,10 @@
             }
           </div>
           <div class="menu-sep"></div>
-
-          <!-- <button mat-menu-item routerLink="/orders">
-            <lucide-angular [img]="Package" [size]="16"></lucide-angular>
-            <span>Orders</span>
-          </button> -->
-
           <button mat-menu-item routerLink="/profile">
             <lucide-angular [img]="CircleUserRound" [size]="16"></lucide-angular>
             <span>Profile</span>
           </button>
-
-          <!-- @if (isSeller()) {
-            <button mat-menu-item routerLink="/dashboard">
-              <lucide-angular [img]="LayoutDashboard" [size]="16"></lucide-angular>
-              <span>My products</span>
-            </button>
-            <button mat-menu-item routerLink="/seller/dashboard">
-              <lucide-angular [img]="ChartNoAxesColumn" [size]="16"></lucide-angular>
-              <span>Analytics</span>
-            </button>
-          } -->
-
           <div class="menu-sep"></div>
 
           <button mat-menu-item class="menu-danger" (click)="logout()">

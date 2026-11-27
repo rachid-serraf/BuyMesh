@@ -1,5 +1,6 @@
 import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { Subject, throwError } from 'rxjs';
+import { AuthService } from '../../../core/auth/services/auth.service';
 import { CartService } from '../../../core/services/cart.service';
 import { CartDto } from '../../../core/models/cart.model';
 import { cartItems, CartProduct, cartToast, hideCartToast } from '../cart-ui.state';
@@ -8,6 +9,7 @@ import { AddToCartButton } from './add-to-cart-button';
 describe('AddToCartButton', () => {
   let fixture: ComponentFixture<AddToCartButton>;
   let cartService: jasmine.SpyObj<CartService>;
+  let authService: { user: { role: string } | null; isAuthenticated: boolean };
   let response$: Subject<CartDto>;
 
   const product: CartProduct = {
@@ -62,9 +64,13 @@ describe('AddToCartButton', () => {
     response$ = new Subject<CartDto>();
     cartService = jasmine.createSpyObj<CartService>('CartService', ['addItem']);
     cartService.addItem.and.returnValue(response$.asObservable());
+    authService = { user: null, isAuthenticated: false };
 
     TestBed.configureTestingModule({
-      providers: [{ provide: CartService, useValue: cartService }],
+      providers: [
+        { provide: CartService, useValue: cartService },
+        { provide: AuthService, useValue: authService },
+      ],
     });
 
     fixture = TestBed.createComponent(AddToCartButton);
@@ -209,6 +215,24 @@ describe('AddToCartButton', () => {
     wait(1500);
     expect(button().getAttribute('aria-label')).toBe('Add Desk lamp to cart');
   }));
+
+  it('blocks sellers from adding products to the cart', () => {
+    authService.user = { role: 'SELLER' };
+    fixture.destroy();
+    fixture = TestBed.createComponent(AddToCartButton);
+    fixture.componentRef.setInput('product', product);
+    fixture.detectChanges();
+
+    expect(button().disabled).toBeTrue();
+    expect(button().textContent).toContain("Sellers can't buy");
+    expect(button().getAttribute('aria-label')).toBe('Sellers cannot add Desk lamp to cart');
+    expect(button().getAttribute('title')).toBe('Sellers cannot buy products');
+
+    button().click();
+
+    expect(cartService.addItem).not.toHaveBeenCalled();
+    expect(cartItems()).toEqual([]);
+  });
 
   it('cancels the pending add when it is destroyed', fakeAsync(() => {
     button().click();

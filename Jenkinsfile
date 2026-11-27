@@ -108,18 +108,24 @@ pipeline {
     agent any
 
     environment {
-        REPO_URL             = 'https://github.com/rachid-serraf/BuyMesh.git'
         COMPOSE_PROJECT_NAME = 'buymesh'
         IMAGE_TAG            = "${BUILD_NUMBER}"
         HEALTH_RETRIES       = '30'
         HEALTH_INTERVAL      = '10'
-        SLACK_CHANNEL        = '#project-buymesh'
     }
 
     options {
         timestamps()
         disableConcurrentBuilds()
         buildDiscarder(logRotator(numToKeepStr: '10'))
+        timeout(time: 60, unit: 'MINUTES')
+    }
+
+    parameters {
+        booleanParam(name: 'RUN_E2E', defaultValue: false,
+                     description: 'Run E2E tests on main-branch builds.')
+        booleanParam(name: 'DEPLOY_ENABLED', defaultValue: true,
+                     description: 'Deploy changed services to the environment on main-branch builds.')
     }
 
     stages {
@@ -157,7 +163,7 @@ pipeline {
                     def infra = files.any { it in ['docker-compose.yml', 'Jenkinsfile', '.env'] }
 
                     env.INFRASTRUCTURE_CHANGED = infra.toString()
-                    env.E2E_CHANGED = files.any { it.startsWith('e2e-tests/') }.toString()
+                    env.E2E_CHANGED = files.any { it.startsWith('backend/e2e-tests/') }.toString()
                     env.CHANGED_SERVICES = servicesList()
                         .findAll { svc -> infra || files.any { f -> f.startsWith(svc.dir + '/') } }
                         .collect { it.id }
@@ -187,7 +193,7 @@ pipeline {
             post {
                 always {
                     junit(
-                        testResults: 'backend/*/target/surefire-reports/*.xml,backend/*/*/target/surefire-reports/*.xml',
+                        testResults: 'backend/*/target/surefire-reports/*.xml,backend/*/*/target/surefire-reports/*.xml,frontend/test-results/*.xml',
                         allowEmptyResults: true
                     )
                 }
@@ -199,7 +205,8 @@ pipeline {
                 script {
                     def javaArgs = '-Dsonar.sources=src/main -Dsonar.java.binaries=target/classes ' +
                                    '-Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml'
-                    def nodeArgs = '-Dsonar.sources=src -Dsonar.exclusions=**/node_modules/**,**/dist/**'
+                    def nodeArgs = '-Dsonar.sources=src -Dsonar.exclusions=**/node_modules/**,**/dist/** ' +
+                                   '-Dsonar.javascript.lcov.reportPaths=coverage/lcov.info'
 
                     runParallel(changedServices()) { svc ->
                         echo "Sonar: ${svc.sonarName}"
@@ -255,7 +262,7 @@ pipeline {
                 allOf {
                     branch 'main'
                     not { changeRequest() }
-                    expression { env.CHANGED_SERVICES?.trim() || env.E2E_CHANGED == 'true' }
+                    expression { params.RUN_E2E && (env.CHANGED_SERVICES?.trim() || env.E2E_CHANGED == 'true') }
                 }
             }
             options { timeout(time: 20, unit: 'MINUTES') }
@@ -303,6 +310,7 @@ pipeline {
                 allOf {
                     branch 'main'
                     not { changeRequest() }
+                    expression { params.DEPLOY_ENABLED }
                 }
             }
             steps {
@@ -361,6 +369,7 @@ pipeline {
                 allOf {
                     branch 'main'
                     not { changeRequest() }
+                    expression { params.DEPLOY_ENABLED }
                 }
             }
             steps {
@@ -415,6 +424,7 @@ pipeline {
                 allOf {
                     branch 'main'
                     not { changeRequest() }
+                    expression { params.DEPLOY_ENABLED }
                 }
             }
             steps {
@@ -451,14 +461,24 @@ pipeline {
                     ? "PR #${env.CHANGE_ID} validation passed — ${env.BUILD_URL}"
                     : "Build #${env.BUILD_NUMBER} deployed successfully — ${env.BUILD_URL}\nDeployed services: ${env.SERVICES_TO_DEPLOY ?: 'none (no changes)'}"
                 catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
-                    slackSend(channel: env.SLACK_CHANNEL, color: 'good', message: "SUCCESS: ${msg}")
+                    emailext(
+                        to: env.NOTIFY_EMAIL,
+                        recipientProviders: [requestor(), developers()],
+                        subject: "SUCCESS: Build #${env.BUILD_NUMBER}",
+                        body: msg
+                    )
                 }
             }
         }
         failure {
             script {
-                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                    slackSend(channel: env.SLACK_CHANNEL, color: 'danger', message: "FAILED: Build #${env.BUILD_NUMBER} failed — ${env.BUILD_URL}\nCheck the console for details.")
+                catchError(buildResult: 'FAILURE', stageResult: 'SUCCESS') {
+                    emailext(
+                        to: env.NOTIFY_EMAIL,
+                        recipientProviders: [requestor(), developers(), culprits()],
+                        subject: "FAILED: Build #${env.BUILD_NUMBER}",
+                        body: "Build failed — ${env.BUILD_URL}\nCheck the console for details."
+                    )
                 }
             }
         }
