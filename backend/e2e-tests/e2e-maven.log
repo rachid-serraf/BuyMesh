@@ -1,0 +1,53 @@
+[INFO] Scanning for projects...
+[INFO] Loaded 24655 auto-discovered prefixes for remote repository central (prefixes-central.txt)
+[INFO] 
+[INFO] -----------------------< com.buymesh:e2e-tests >------------------------
+[INFO] Building  0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ e2e-tests ---
+[INFO] skip non existing resourceDirectory /home/nervan/Desktop/Buy-01/backend/e2e-tests/src/main/resources
+[INFO] skip non existing resourceDirectory /home/nervan/Desktop/Buy-01/backend/e2e-tests/src/main/resources
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ e2e-tests ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] --- resources:3.5.0:testResources (default-testResources) @ e2e-tests ---
+[INFO] skip non existing resourceDirectory /home/nervan/Desktop/Buy-01/backend/e2e-tests/src/test/resources
+[INFO] 
+[INFO] --- compiler:3.15.0:testCompile (default-testCompile) @ e2e-tests ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] --- gplus:3.0.2:compileTests (default) @ e2e-tests ---
+[INFO] Using isolated classloader, without GMavenPlus classpath.
+[INFO] Using Groovy 4.0.15 to perform compileTests.
+[INFO] invokedynamic enabled.
+[INFO] Parallel parsing enabled.
+[INFO] Compiled 15 files.
+[INFO] 
+[INFO] --- surefire:3.2.5:test (default-test) @ e2e-tests ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running specs.SellerFlowSpec
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 38.37 s -- in specs.SellerFlowSpec
+[INFO] Running specs.UserAuthSpec
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 5.814 s -- in specs.UserAuthSpec
+[INFO] Running specs.SmokeSpec
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.568 s -- in specs.SmokeSpec
+[INFO] Running specs.BuyerFlowSpec
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 11.60 s -- in specs.BuyerFlowSpec
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 14, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  01:33 min
+[INFO] Finished at: 2026-11-27T20:46:19Z
+[INFO] ------------------------------------------------------------------------
